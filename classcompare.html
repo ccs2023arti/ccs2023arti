@@ -1,0 +1,556 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>classcompare</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h4 id="home."><a href="http://weakcamid.info/">Home</a>.</h4>
+<h2 id="classifiers-comparison">Classifiers comparison</h2>
+<h2 id="collecting-environment">Collecting environment</h2>
+<p>Network monitoring setup:<br>
+Experiment setup:</p>
+<ul>
+<li>All listed wireless cameras</li>
+<li>Cox network - Oklahoma</li>
+<li>NETGEAR R6300 V2 Wireless AP (2.4 Ghz Mode Only)</li>
+<li>Rooted Motorola Nexus 6</li>
+<li>Kali Nethunter ROM 2021.1</li>
+<li>Airmon-ng 1.6</li>
+</ul>
+<hr>
+<h4 id="data-collection">Data collection</h4>
+<p>We have a dataset containing feature vectors coming from 11 different cameras that we examine for training. We perform different durations of motion from 2 to 16 seconds with increments of 2. For every motion length, we collect 70 corresponding traffic flows for each camera state of every camera, enabling us to obtain high inference accuracy. Thus, the built dataset has 11 × 8 × 70 × 4 = 24, 640 feature vectors in total. We apply the common 80/20 split for training and test sets.</p>
+<h4 id="calculation-method">Calculation method:</h4>
+<p>For localization error:<br>
+<code>Success rate = Successful cases / Total cases</code><br>
+For localization time:<br>
+<code>F1 Score = (Precision * Recall) / (Precision + Recall)</code></p>
+<h3 id="code-section">Code Section</h3>
+<p>Classifiers code for DT:</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token comment"># Import necessary libraries</span>
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>tree <span class="token keyword">import</span> DecisionTreeClassifier
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>metrics <span class="token keyword">import</span> classification_report<span class="token punctuation">,</span> confusion_matrix
+<span class="token keyword">import</span> pandas <span class="token keyword">as</span> pd
+
+<span class="token comment"># Load data</span>
+data <span class="token operator">=</span> pd<span class="token punctuation">.</span>read_binary<span class="token punctuation">(</span><span class="token string">'traffic.bin'</span><span class="token punctuation">)</span>  
+
+<span class="token comment"># Prepare feature vectors and labels</span>
+X <span class="token operator">=</span> data<span class="token punctuation">.</span>drop<span class="token punctuation">(</span><span class="token string">'label'</span><span class="token punctuation">,</span> axis<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span>  <span class="token comment"># Assuming 'label' is the name of the column with target values</span>
+y <span class="token operator">=</span> data<span class="token punctuation">[</span><span class="token string">'label'</span><span class="token punctuation">]</span>
+
+<span class="token comment"># Initialize and train the decision tree classifier</span>
+clf <span class="token operator">=</span> DecisionTreeClassifier<span class="token punctuation">(</span><span class="token punctuation">)</span>
+clf<span class="token punctuation">.</span>fit<span class="token punctuation">(</span>X<span class="token punctuation">,</span> y<span class="token punctuation">)</span>
+
+<span class="token comment"># Predictions and evaluation</span>
+y_pred <span class="token operator">=</span> clf<span class="token punctuation">.</span>predict<span class="token punctuation">(</span>X<span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>confusion_matrix<span class="token punctuation">(</span>y<span class="token punctuation">,</span> y_pred<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>classification_report<span class="token punctuation">(</span>y<span class="token punctuation">,</span> y_pred<span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<p>Classifiers code for RF:</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token comment"># Import necessary libraries</span>
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>ensemble <span class="token keyword">import</span> RandomForestClassifier
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>metrics <span class="token keyword">import</span> classification_report<span class="token punctuation">,</span> confusion_matrix
+<span class="token keyword">import</span> pandas <span class="token keyword">as</span> pd
+
+<span class="token comment"># Load data</span>
+data <span class="token operator">=</span> pd<span class="token punctuation">.</span>read_binary<span class="token punctuation">(</span><span class="token string">'traffic.bin'</span><span class="token punctuation">)</span>  
+
+<span class="token comment"># Prepare feature vectors and labels</span>
+X <span class="token operator">=</span> data<span class="token punctuation">.</span>drop<span class="token punctuation">(</span><span class="token string">'label'</span><span class="token punctuation">,</span> axis<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span>
+y <span class="token operator">=</span> data<span class="token punctuation">[</span><span class="token string">'label'</span><span class="token punctuation">]</span>
+
+<span class="token comment"># Initialize and train the random forest classifier</span>
+clf <span class="token operator">=</span> RandomForestClassifier<span class="token punctuation">(</span><span class="token punctuation">)</span>
+clf<span class="token punctuation">.</span>fit<span class="token punctuation">(</span>X<span class="token punctuation">,</span> y<span class="token punctuation">)</span>
+
+<span class="token comment"># Predictions and evaluation</span>
+y_pred <span class="token operator">=</span> clf<span class="token punctuation">.</span>predict<span class="token punctuation">(</span>X<span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>confusion_matrix<span class="token punctuation">(</span>y<span class="token punctuation">,</span> y_pred<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>classification_report<span class="token punctuation">(</span>y<span class="token punctuation">,</span> y_pred<span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<p>Classifiers code for SVM:</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token comment"># Import necessary libraries</span>
+<span class="token keyword">from</span> sklearn <span class="token keyword">import</span> svm
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>metrics <span class="token keyword">import</span> classification_report<span class="token punctuation">,</span> confusion_matrix
+<span class="token keyword">import</span> pandas <span class="token keyword">as</span> pd
+
+<span class="token comment"># Load data</span>
+data <span class="token operator">=</span> pd<span class="token punctuation">.</span>read_binary<span class="token punctuation">(</span><span class="token string">'traffic.bin'</span><span class="token punctuation">)</span> 
+
+<span class="token comment"># Prepare feature vectors and labels</span>
+X <span class="token operator">=</span> data<span class="token punctuation">.</span>drop<span class="token punctuation">(</span><span class="token string">'label'</span><span class="token punctuation">,</span> axis<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span>
+y <span class="token operator">=</span> data<span class="token punctuation">[</span><span class="token string">'label'</span><span class="token punctuation">]</span>
+
+<span class="token comment"># Initialize and train the SVM classifier</span>
+clf <span class="token operator">=</span> svm<span class="token punctuation">.</span>SVC<span class="token punctuation">(</span><span class="token punctuation">)</span>
+clf<span class="token punctuation">.</span>fit<span class="token punctuation">(</span>X<span class="token punctuation">,</span> y<span class="token punctuation">)</span>
+
+<span class="token comment"># Predictions and evaluation</span>
+y_pred <span class="token operator">=</span> clf<span class="token punctuation">.</span>predict<span class="token punctuation">(</span>X<span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>confusion_matrix<span class="token punctuation">(</span>y<span class="token punctuation">,</span> y_pred<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>classification_report<span class="token punctuation">(</span>y<span class="token punctuation">,</span> y_pred<span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<p>Output:</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token comment"># Example output for three classifiers from three programs</span>
+
+<span class="token triple-quoted-string string">"""
+Decision Tree Accuracy: 0.86
+Random Forest Accuracy: 0.93
+SVM Accuracy: 0.89
+"""</span>
+</code></pre>
+<p>Download full program as a <a href="http://motioncompass.info/userstudy.zip">zip</a></p>
+<h4 id="getting-result">Getting Result</h4>
+<p>The final result contains two figures.</p>
+<p>First figure is the <strong>Successful Rate</strong> figures across 4 different camera modes, for all three classifiers. The following data are done by manually calculating the rate then logging into the Matlab code as a variable.</p>
+<pre class=" language-matlab"><code class="prism  language-matlab">clear
+
+close all
+
+clc
+
+LabelFontSize<span class="token operator">=</span><span class="token number">18</span><span class="token punctuation">;</span>
+
+LineWidth<span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">;</span>
+
+<span class="token comment">%x = [2,4,6,8,10,12,14,16];</span>
+
+x<span class="token operator">=</span><span class="token number">2</span><span class="token operator">:</span><span class="token number">2</span><span class="token operator">:</span><span class="token number">16</span><span class="token punctuation">;</span>
+
+<span class="token comment">%normalpaid</span>
+
+subplot1 <span class="token operator">=</span> <span class="token function">subplot</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [67.7, 72.8, 86.5, 89.8, 91.4, 92.2, 90.4, 91.1]</span>
+
+<span class="token comment">%False Negative Rate Array: [21.5, 22.4, 10.2, 4.5, 4.6, 4.2, 4.7, 3.7]</span>
+
+<span class="token comment">%True Negative Rate Array: [9.2, 1.4, 0.2, 5.7, 3.4, 3.2, 0.4, 2.4]</span>
+
+<span class="token comment">%False Positive Rate Array: [1.6, 3.4, 3.1, 0.0, 0.6, 0.4, 4.5, 2.8]</span>
+
+dts_paid_normal <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.85</span><span class="token punctuation">,</span> <span class="token number">0.85</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [69.9, 78.5, 89.8, 93.5, 95.5, 97.1, 96.5, 96.7]</span>
+
+<span class="token comment">%False Negative Rate Array: [26.3, 19.0, 9.1, 3.8, 3.3, 1.9, 1.7, 1.9]</span>
+
+<span class="token comment">%True Negative Rate Array: [3.1, 2.0, 0.1, 0.4, 0.3, 0.2, 0.4, 1.1]</span>
+
+<span class="token comment">%False Positive Rate Array: [0.7, 0.5, 1.0, 2.3, 0.9, 0.8, 1.4, 0.3]</span>
+
+svm_paid_normal <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.84</span><span class="token punctuation">,</span> <span class="token number">0.89</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.99</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.99</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [61.8, 71.9, 83.4, 85.5, 88.7, 93.5, 94.1, 92.1]</span>
+
+<span class="token comment">%False Negative Rate Array: [17.1, 20.9, 11.6, 10.8, 9.8, 4.8, 2.5, 4.3]</span>
+
+<span class="token comment">%True Negative Rate Array: [15.1, 6.5, 2.1, 0.5, 0.1, 0.6, 1.5, 2.4]</span>
+
+<span class="token comment">%False Positive Rate Array: [6.0, 0.7, 2.9, 3.2, 1.4, 1.1, 1.9, 1.2]</span>
+
+rf_paid_normal <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.84</span><span class="token punctuation">,</span> <span class="token number">0.87</span><span class="token punctuation">,</span> <span class="token number">0.92</span><span class="token punctuation">,</span> <span class="token number">0.92</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>dts_paid_normal<span class="token punctuation">,</span><span class="token string">'*--blue'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>rf_paid_normal<span class="token punctuation">,</span><span class="token string">'o:black'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>svm_paid_normal<span class="token punctuation">,</span><span class="token string">'+-red'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+<span class="token function">xlim</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token operator">*</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">8</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">%xticklabels({'2','4','6','8','10','12','14','16'});</span>
+
+<span class="token function">title</span><span class="token punctuation">(</span><span class="token string">'(a) Paid - Normal'</span><span class="token punctuation">)</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>gca<span class="token punctuation">,</span><span class="token string">'XTick'</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token operator">:</span><span class="token number">4</span><span class="token operator">:</span><span class="token number">16</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>subplot1<span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">xlabel</span><span class="token punctuation">(</span><span class="token string">'Duration (sec)'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylabel</span><span class="token punctuation">(</span><span class="token string">'Success Rate (%)'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">legend</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">'DT'</span><span class="token punctuation">,</span><span class="token string">'RF'</span><span class="token punctuation">,</span><span class="token string">'SVM'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">%normalunpaid</span>
+
+subplot2 <span class="token operator">=</span><span class="token function">subplot</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">)</span>
+
+dts_unpaid_normal <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">63.1</span><span class="token punctuation">,</span><span class="token number">71.2</span><span class="token punctuation">,</span><span class="token number">84.5</span><span class="token punctuation">,</span><span class="token number">87.2</span><span class="token punctuation">,</span><span class="token number">90.3</span><span class="token punctuation">,</span><span class="token number">92.3</span><span class="token punctuation">,</span><span class="token number">92.1</span><span class="token punctuation">,</span><span class="token number">92.6</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+svm_unpaid_normal <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">66.4</span><span class="token punctuation">,</span><span class="token number">76.3</span><span class="token punctuation">,</span><span class="token number">88.3</span><span class="token punctuation">,</span><span class="token number">91.4</span><span class="token punctuation">,</span><span class="token number">94.7</span><span class="token punctuation">,</span><span class="token number">96.8</span><span class="token punctuation">,</span><span class="token number">97.2</span><span class="token punctuation">,</span><span class="token number">96.9</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+rf_unpaid_normal <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">62.5</span><span class="token punctuation">,</span><span class="token number">70.2</span><span class="token punctuation">,</span><span class="token number">80.1</span><span class="token punctuation">,</span><span class="token number">86.1</span><span class="token punctuation">,</span><span class="token number">89.2</span><span class="token punctuation">,</span><span class="token number">92.8</span><span class="token punctuation">,</span><span class="token number">93</span><span class="token punctuation">,</span><span class="token number">92.3</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>dts_unpaid_normal<span class="token punctuation">,</span><span class="token string">'*--blue'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>rf_unpaid_normal<span class="token punctuation">,</span><span class="token string">'o:black'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>svm_unpaid_normal<span class="token punctuation">,</span><span class="token string">'+-red'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+<span class="token function">xlim</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token operator">*</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">8</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">%xticklabels({'2','4','6','8','10','12','14','16'});</span>
+
+<span class="token function">title</span><span class="token punctuation">(</span><span class="token string">'(b) Unpaid - Normal'</span><span class="token punctuation">)</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>gca<span class="token punctuation">,</span><span class="token string">'XTick'</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token operator">:</span><span class="token number">4</span><span class="token operator">:</span><span class="token number">16</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>subplot2<span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">xlabel</span><span class="token punctuation">(</span><span class="token string">'Duration (sec)'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylabel</span><span class="token punctuation">(</span><span class="token string">'Success Rate (%)'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">legend</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">'DT'</span><span class="token punctuation">,</span><span class="token string">'RF'</span><span class="token punctuation">,</span><span class="token string">'SVM'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+subplot3<span class="token operator">=</span><span class="token function">subplot</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">)</span>
+
+<span class="token comment">%livepaid</span>
+
+dts_paid_live <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">55.6</span><span class="token punctuation">,</span><span class="token number">64.5</span><span class="token punctuation">,</span><span class="token number">83.7</span><span class="token punctuation">,</span><span class="token number">85.8</span><span class="token punctuation">,</span><span class="token number">86.9</span><span class="token punctuation">,</span><span class="token number">87.1</span><span class="token punctuation">,</span><span class="token number">88.3</span><span class="token punctuation">,</span><span class="token number">87.9</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+svm_paid_live <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">63.5</span><span class="token punctuation">,</span><span class="token number">73.7</span><span class="token punctuation">,</span><span class="token number">86.9</span><span class="token punctuation">,</span><span class="token number">89.8</span><span class="token punctuation">,</span><span class="token number">91.1</span><span class="token punctuation">,</span><span class="token number">93.2</span><span class="token punctuation">,</span><span class="token number">93.1</span><span class="token punctuation">,</span><span class="token number">92.7</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+rf_paid_live <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">57.8</span><span class="token punctuation">,</span><span class="token number">65.6</span><span class="token punctuation">,</span><span class="token number">81.2</span><span class="token punctuation">,</span><span class="token number">83.1</span><span class="token punctuation">,</span><span class="token number">87.3</span><span class="token punctuation">,</span><span class="token number">88.8</span><span class="token punctuation">,</span><span class="token number">87.6</span><span class="token punctuation">,</span><span class="token number">87.4</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>dts_paid_live<span class="token punctuation">,</span><span class="token string">'*--blue'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>rf_paid_live<span class="token punctuation">,</span><span class="token string">'o:black'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>svm_paid_live<span class="token punctuation">,</span><span class="token string">'+-red'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+<span class="token function">xlim</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token operator">*</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">8</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">%xticklabels({'2','4','6','8','10','12','14','16'});</span>
+
+<span class="token function">title</span><span class="token punctuation">(</span><span class="token string">'(c) Paid - Live View'</span><span class="token punctuation">)</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>gca<span class="token punctuation">,</span><span class="token string">'XTick'</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token operator">:</span><span class="token number">4</span><span class="token operator">:</span><span class="token number">16</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>subplot3<span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">xlabel</span><span class="token punctuation">(</span><span class="token string">'Duration (sec)'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylabel</span><span class="token punctuation">(</span><span class="token string">'Success Rate (%)'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">legend</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">'DT'</span><span class="token punctuation">,</span><span class="token string">'RF'</span><span class="token punctuation">,</span><span class="token string">'SVM'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">%liveunpaid</span>
+
+subplot4<span class="token operator">=</span><span class="token function">subplot</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">4</span><span class="token punctuation">)</span>
+
+dts_unpaid_live <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">57.6</span><span class="token punctuation">,</span><span class="token number">72.3</span><span class="token punctuation">,</span><span class="token number">84.9</span><span class="token punctuation">,</span><span class="token number">87.2</span><span class="token punctuation">,</span><span class="token number">88.7</span><span class="token punctuation">,</span><span class="token number">91.1</span><span class="token punctuation">,</span><span class="token number">90.8</span><span class="token punctuation">,</span><span class="token number">90.6</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+svm_unpaid_live <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">65.3</span><span class="token punctuation">,</span><span class="token number">74.9</span><span class="token punctuation">,</span><span class="token number">87.1</span><span class="token punctuation">,</span><span class="token number">90.3</span><span class="token punctuation">,</span><span class="token number">93.3</span><span class="token punctuation">,</span><span class="token number">94.7</span><span class="token punctuation">,</span><span class="token number">95.5</span><span class="token punctuation">,</span><span class="token number">94.9</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+rf_unpaid_live <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">58.9</span><span class="token punctuation">,</span><span class="token number">71.5</span><span class="token punctuation">,</span><span class="token number">78.3</span><span class="token punctuation">,</span><span class="token number">88.5</span><span class="token punctuation">,</span><span class="token number">90.5</span><span class="token punctuation">,</span><span class="token number">90.1</span><span class="token punctuation">,</span><span class="token number">91.2</span><span class="token punctuation">,</span><span class="token number">90.7</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>dts_unpaid_live<span class="token punctuation">,</span><span class="token string">'*--blue'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>rf_unpaid_live<span class="token punctuation">,</span><span class="token string">'o:black'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>svm_unpaid_live<span class="token punctuation">,</span><span class="token string">'+-red'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+<span class="token function">xlim</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token operator">*</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">8</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">%xticklabels({'2','4','6','8','10','12','14','16'});</span>
+
+<span class="token function">title</span><span class="token punctuation">(</span><span class="token string">'(d) Unpaid - Live View'</span><span class="token punctuation">)</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>gca<span class="token punctuation">,</span><span class="token string">'XTick'</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token operator">:</span><span class="token number">4</span><span class="token operator">:</span><span class="token number">16</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>subplot4<span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">xlabel</span><span class="token punctuation">(</span><span class="token string">'Duration (sec)'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylabel</span><span class="token punctuation">(</span><span class="token string">'Success Rate (%)'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">legend</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">'DT'</span><span class="token punctuation">,</span><span class="token string">'RF'</span><span class="token punctuation">,</span><span class="token string">'SVM'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Thus, we can generate the following figure for Success Rate and F1 Score:<br>
+<img src="https://weakcamid.info/figs/comsr.png" alt="Success Rate"><br>
+Second figure is the <strong>F1 Scores</strong> figures across 4 different camera modes, for all three classifiers. Matlab code:</p>
+<pre class=" language-matlab"><code class="prism  language-matlab">clear
+
+close all
+
+clc
+
+LabelFontSize<span class="token operator">=</span><span class="token number">18</span><span class="token punctuation">;</span>
+
+LineWidth<span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">;</span>
+
+<span class="token comment">%x = [2,4,6,8,10,12,14,16];</span>
+
+x<span class="token operator">=</span><span class="token number">2</span><span class="token operator">:</span><span class="token number">2</span><span class="token operator">:</span><span class="token number">16</span><span class="token punctuation">;</span>
+
+<span class="token comment">%normalpaid</span>
+
+subplot1 <span class="token operator">=</span> <span class="token function">subplot</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [34.0, 48.9, 45.6, 45.3, 60.3, 50.0, 57.5, 46.3]</span>
+
+<span class="token comment">%False Negative Rate Array: [10.9, 21.1, 8.9, 3.0, 5.0, 1.9, 0.8, 3.0]</span>
+
+<span class="token comment">%True Negative Rate Array: [33.7, 23.9, 40.9, 44.5, 31.1, 42.2, 32.9, 44.8]</span>
+
+<span class="token comment">%False Positive Rate Array: [21.4, 6.1, 4.6, 7.2, 3.6, 5.9, 8.8, 5.9]</span>
+
+dts_paid_normal <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.68</span><span class="token punctuation">,</span> <span class="token number">0.78</span><span class="token punctuation">,</span> <span class="token number">0.87</span><span class="token punctuation">,</span> <span class="token number">0.9</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.92</span><span class="token punctuation">,</span> <span class="token number">0.91</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [41.9, 52.0, 61.2, 49.6, 61.4, 66.7, 56.5, 58.5]</span>
+
+<span class="token comment">%False Negative Rate Array: [21.8, 16.1, 5.3, 4.4, 3.1, 2.0, 3.4, 1.6]</span>
+
+<span class="token comment">%True Negative Rate Array: [28.0, 26.5, 28.6, 43.9, 34.1, 30.4, 40.0, 38.2]</span>
+
+<span class="token comment">%False Positive Rate Array: [8.3, 5.4, 4.9, 2.1, 1.4, 0.9, 0.1, 1.7]</span>
+
+svm_paid_normal <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.74</span><span class="token punctuation">,</span> <span class="token number">0.83</span><span class="token punctuation">,</span> <span class="token number">0.92</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [40.3, 44.6, 48.4, 45.6, 45.3, 59.6, 64.8, 59.8]</span>
+
+<span class="token comment">%False Negative Rate Array: [28.7, 12.9, 9.0, 1.3, 2.7, 3.6, 2.6, 3.6]</span>
+
+<span class="token comment">%True Negative Rate Array: [21.5, 27.3, 35.0, 39.9, 43.4, 33.9, 29.3, 32.3]</span>
+
+<span class="token comment">%False Positive Rate Array: [9.5, 15.2, 7.6, 13.2, 8.6, 2.9, 3.3, 4.3]</span>
+
+rf_paid_normal <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.68</span><span class="token punctuation">,</span> <span class="token number">0.76</span><span class="token punctuation">,</span> <span class="token number">0.85</span><span class="token punctuation">,</span> <span class="token number">0.86</span><span class="token punctuation">,</span> <span class="token number">0.89</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>dts_paid_normal<span class="token punctuation">,</span><span class="token string">'*--blue'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>rf_paid_normal<span class="token punctuation">,</span><span class="token string">'o:black'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>svm_paid_normal<span class="token punctuation">,</span><span class="token string">'+-red'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+<span class="token function">xlim</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token operator">*</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">8</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">%xticklabels({'2','4','6','8','10','12','14','16'});</span>
+
+<span class="token function">title</span><span class="token punctuation">(</span><span class="token string">'(a) Paid - Normal'</span><span class="token punctuation">)</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>gca<span class="token punctuation">,</span><span class="token string">'XTick'</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token operator">:</span><span class="token number">4</span><span class="token operator">:</span><span class="token number">16</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>subplot1<span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">xlabel</span><span class="token punctuation">(</span><span class="token string">'Duration (sec)'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylabel</span><span class="token punctuation">(</span><span class="token string">'F1 Score'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">legend</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">'DT'</span><span class="token punctuation">,</span><span class="token string">'RF'</span><span class="token punctuation">,</span><span class="token string">'SVM'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">%normalunpaid</span>
+
+subplot2 <span class="token operator">=</span><span class="token function">subplot</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">)</span>
+
+<span class="token comment">%True Positive Rate Array: [42.3, 41.9, 45.5, 51.0, 51.0, 63.8, 53.8, 46.5]</span>
+
+<span class="token comment">%False Negative Rate Array: [21.7, 19.0, 3.8, 12.2, 9.3, 3.4, 3.4, 2.1]</span>
+
+<span class="token comment">%True Negative Rate Array: [20.8, 29.3, 39.0, 36.2, 39.3, 28.5, 38.3, 46.1]</span>
+
+<span class="token comment">%False Positive Rate Array: [15.2, 9.8, 11.7, 0.6, 0.4, 4.3, 4.5, 5.3]</span>
+
+dts_unpaid_normal <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.7</span><span class="token punctuation">,</span> <span class="token number">0.74</span><span class="token punctuation">,</span> <span class="token number">0.85</span><span class="token punctuation">,</span> <span class="token number">0.89</span><span class="token punctuation">,</span> <span class="token number">0.91</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [42.3, 40.6, 54.7, 52.2, 60.1, 67.3, 54.1, 53.3]</span>
+
+<span class="token comment">%False Negative Rate Array: [32.6, 17.5, 3.2, 3.6, 2.9, 0.9, 0.2, 2.0]</span>
+
+<span class="token comment">%True Negative Rate Array: [24.1, 35.7, 33.6, 39.2, 34.6, 29.5, 43.1, 43.6]</span>
+
+<span class="token comment">%False Positive Rate Array: [1.0, 6.2, 8.5, 5.0, 2.4, 2.3, 2.6, 1.1]</span>
+
+svm_unpaid_normal <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.72</span><span class="token punctuation">,</span> <span class="token number">0.77</span><span class="token punctuation">,</span> <span class="token number">0.9</span><span class="token punctuation">,</span> <span class="token number">0.92</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [39.9, 45.5, 43.4, 58.7, 60.4, 48.4, 56.7, 50.1]</span>
+
+<span class="token comment">%False Negative Rate Array: [0.2, 28.1, 3.4, 13.3, 8.4, 4.2, 4.5, 4.7]</span>
+
+<span class="token comment">%True Negative Rate Array: [22.6, 24.7, 36.7, 27.4, 28.8, 44.4, 36.3, 42.2]</span>
+
+<span class="token comment">%False Positive Rate Array: [37.3, 1.7, 16.5, 0.6, 2.4, 3.0, 2.5, 3.0]</span>
+
+rf_unpaid_normal <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.68</span><span class="token punctuation">,</span> <span class="token number">0.75</span><span class="token punctuation">,</span> <span class="token number">0.81</span><span class="token punctuation">,</span> <span class="token number">0.89</span><span class="token punctuation">,</span> <span class="token number">0.92</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>dts_unpaid_normal<span class="token punctuation">,</span><span class="token string">'*--blue'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>rf_unpaid_normal<span class="token punctuation">,</span><span class="token string">'o:black'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>svm_unpaid_normal<span class="token punctuation">,</span><span class="token string">'+-red'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+<span class="token function">xlim</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token operator">*</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">8</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">%xticklabels({'2','4','6','8','10','12','14','16'});</span>
+
+<span class="token function">title</span><span class="token punctuation">(</span><span class="token string">'(b) Unpaid - Normal'</span><span class="token punctuation">)</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>gca<span class="token punctuation">,</span><span class="token string">'XTick'</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token operator">:</span><span class="token number">4</span><span class="token operator">:</span><span class="token number">16</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>subplot2<span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">xlabel</span><span class="token punctuation">(</span><span class="token string">'Duration (sec)'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylabel</span><span class="token punctuation">(</span><span class="token string">'F1 Score'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">legend</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">'DT'</span><span class="token punctuation">,</span><span class="token string">'RF'</span><span class="token punctuation">,</span><span class="token string">'SVM'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+subplot3<span class="token operator">=</span><span class="token function">subplot</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">)</span>
+
+<span class="token comment">%livepaid</span>
+
+<span class="token comment">%True Positive Rate Array: [27.9, 39.0, 44.5, 52.6, 55.9, 55.2, 55.7, 58.6]</span>
+
+<span class="token comment">%False Negative Rate Array: [12.0, 23.6, 15.8, 12.6, 0.4, 10.6, 6.9, 3.8]</span>
+
+<span class="token comment">%True Negative Rate Array: [27.7, 25.5, 39.2, 33.2, 31.0, 31.9, 32.6, 29.3]</span>
+
+<span class="token comment">%False Positive Rate Array: [32.4, 11.9, 0.5, 1.6, 12.7, 2.3, 4.8, 8.3]</span>
+
+dts_paid_live <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.56</span><span class="token punctuation">,</span> <span class="token number">0.69</span><span class="token punctuation">,</span> <span class="token number">0.85</span><span class="token punctuation">,</span> <span class="token number">0.88</span><span class="token punctuation">,</span> <span class="token number">0.9</span><span class="token punctuation">,</span> <span class="token number">0.9</span><span class="token punctuation">,</span> <span class="token number">0.9</span><span class="token punctuation">,</span> <span class="token number">0.91</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [42.3, 48.3, 43.8, 49.9, 52.6, 59.0, 63.6, 56.4]</span>
+
+<span class="token comment">%False Negative Rate Array: [9.3, 17.4, 10.6, 6.4, 5.6, 5.1, 3.4, 0.9]</span>
+
+<span class="token comment">%True Negative Rate Array: [21.2, 25.4, 43.1, 39.9, 38.5, 34.2, 29.5, 36.3]</span>
+
+<span class="token comment">%False Positive Rate Array: [27.2, 8.9, 2.5, 3.8, 3.3, 1.7, 3.5, 6.4]</span>
+
+svm_paid_live <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.7</span><span class="token punctuation">,</span> <span class="token number">0.79</span><span class="token punctuation">,</span> <span class="token number">0.87</span><span class="token punctuation">,</span> <span class="token number">0.91</span><span class="token punctuation">,</span> <span class="token number">0.92</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [30.4, 40.1, 49.0, 55.7, 51.1, 49.3, 60.0, 53.3]</span>
+
+<span class="token comment">%False Negative Rate Array: [3.1, 24.3, 6.1, 4.7, 6.3, 1.3, 12.1, 11.7]</span>
+
+<span class="token comment">%True Negative Rate Array: [27.4, 25.5, 32.2, 27.4, 36.2, 39.5, 27.6, 34.1]</span>
+
+<span class="token comment">%False Positive Rate Array: [39.1, 10.1, 12.7, 12.2, 6.4, 9.9, 0.3, 0.9]</span>
+
+rf_paid_live <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.59</span><span class="token punctuation">,</span> <span class="token number">0.7</span><span class="token punctuation">,</span> <span class="token number">0.84</span><span class="token punctuation">,</span> <span class="token number">0.87</span><span class="token punctuation">,</span> <span class="token number">0.89</span><span class="token punctuation">,</span> <span class="token number">0.9</span><span class="token punctuation">,</span> <span class="token number">0.91</span><span class="token punctuation">,</span> <span class="token number">0.89</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>dts_paid_live<span class="token punctuation">,</span><span class="token string">'*--blue'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>rf_paid_live<span class="token punctuation">,</span><span class="token string">'o:black'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>svm_paid_live<span class="token punctuation">,</span><span class="token string">'+-red'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+<span class="token function">xlim</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token operator">*</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">8</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">%xticklabels({'2','4','6','8','10','12','14','16'});</span>
+
+<span class="token function">title</span><span class="token punctuation">(</span><span class="token string">'(c) Paid - Live View'</span><span class="token punctuation">)</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>gca<span class="token punctuation">,</span><span class="token string">'XTick'</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token operator">:</span><span class="token number">4</span><span class="token operator">:</span><span class="token number">16</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>subplot3<span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">xlabel</span><span class="token punctuation">(</span><span class="token string">'Duration (sec)'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylabel</span><span class="token punctuation">(</span><span class="token string">'F1 Score'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">legend</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">'DT'</span><span class="token punctuation">,</span><span class="token string">'RF'</span><span class="token punctuation">,</span><span class="token string">'SVM'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">%liveunpaid</span>
+
+subplot4<span class="token operator">=</span><span class="token function">subplot</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">4</span><span class="token punctuation">)</span>
+
+<span class="token comment">%True Positive Rate Array: [35.9, 37.8, 43.4, 60.4, 46.3, 45.8, 59.3, 62.2]</span>
+
+<span class="token comment">%False Negative Rate Array: [28.3, 21.1, 10.9, 10.5, 6.5, 6.1, 0.3, 8.8]</span>
+
+<span class="token comment">%True Negative Rate Array: [21.7, 34.5, 41.5, 26.8, 42.4, 45.3, 31.5, 28.4]</span>
+
+<span class="token comment">%False Positive Rate Array: [14.1, 6.6, 4.2, 2.3, 4.8, 2.8, 8.9, 0.6]</span>
+
+dts_unpaid_live <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.63</span><span class="token punctuation">,</span> <span class="token number">0.73</span><span class="token punctuation">,</span> <span class="token number">0.85</span><span class="token punctuation">,</span> <span class="token number">0.9</span><span class="token punctuation">,</span> <span class="token number">0.89</span><span class="token punctuation">,</span> <span class="token number">0.91</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [42.0, 38.6, 58.4, 45.3, 54.0, 55.9, 52.4, 58.6]</span>
+
+<span class="token comment">%False Negative Rate Array: [5.5, 0.7, 8.6, 5.2, 2.2, 3.5, 1.2, 4.0]</span>
+
+<span class="token comment">%True Negative Rate Array: [23.3, 36.3, 28.7, 45.0, 39.3, 38.8, 43.1, 36.3]</span>
+
+<span class="token comment">%False Positive Rate Array: [29.2, 24.4, 4.3, 4.5, 4.5, 1.8, 3.3, 1.1]</span>
+
+svm_unpaid_live <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.71</span><span class="token punctuation">,</span> <span class="token number">0.75</span><span class="token punctuation">,</span> <span class="token number">0.9</span><span class="token punctuation">,</span> <span class="token number">0.9</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [36.6, 42.8, 43.7, 52.4, 57.6, 51.0, 61.3, 61.1]</span>
+
+<span class="token comment">%False Negative Rate Array: [17.9, 6.5, 8.4, 10.4, 1.9, 5.3, 3.3, 1.8]</span>
+
+<span class="token comment">%True Negative Rate Array: [22.3, 28.7, 34.6, 36.1, 32.9, 39.1, 29.9, 29.6]</span>
+
+<span class="token comment">%False Positive Rate Array: [23.2, 22.0, 13.3, 1.1, 7.6, 4.6, 5.5, 7.5]</span>
+
+rf_unpaid_live <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.64</span><span class="token punctuation">,</span> <span class="token number">0.75</span><span class="token punctuation">,</span> <span class="token number">0.8</span><span class="token punctuation">,</span> <span class="token number">0.9</span><span class="token punctuation">,</span> <span class="token number">0.92</span><span class="token punctuation">,</span> <span class="token number">0.91</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>dts_unpaid_live<span class="token punctuation">,</span><span class="token string">'*--blue'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>rf_unpaid_live<span class="token punctuation">,</span><span class="token string">'o:black'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span>svm_unpaid_live<span class="token punctuation">,</span><span class="token string">'+-red'</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span>LineWidth<span class="token punctuation">)</span>
+
+<span class="token function">xlim</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token operator">*</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">8</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">%xticklabels({'2','4','6','8','10','12','14','16'});</span>
+
+<span class="token function">title</span><span class="token punctuation">(</span><span class="token string">'(d) Unpaid - Live View'</span><span class="token punctuation">)</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>gca<span class="token punctuation">,</span><span class="token string">'XTick'</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token operator">:</span><span class="token number">4</span><span class="token operator">:</span><span class="token number">16</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>subplot4<span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">xlabel</span><span class="token punctuation">(</span><span class="token string">'Duration (sec)'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylabel</span><span class="token punctuation">(</span><span class="token string">'F1 Score'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">legend</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">'DT'</span><span class="token punctuation">,</span><span class="token string">'RF'</span><span class="token punctuation">,</span><span class="token string">'SVM'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p><img src="https://weakcamid.info/figs/comf1.png" alt="F1 Score"></p>
+</div>
+</body>
+
+</html>
