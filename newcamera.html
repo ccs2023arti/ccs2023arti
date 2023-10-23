@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>newcamera</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h4 id="home."><a href="http://weakcamid.info/">Home</a>.</h4>
+<h2 id="impact-of-previously-unknown-cameras">Impact of Previously Unknown Cameras</h2>
+<p>The following software/modules needed to get our result:</p>
+<ul>
+<li>Python 3.9
+<ul>
+<li>Scikit-learn 0.24</li>
+<li>Numpy 1.13.3</li>
+<li>Scipy 0.19.1</li>
+<li>matplotlib 2.1.1</li>
+</ul>
+</li>
+<li>Matlab R2023_a
+<ul>
+<li>Machine learning toolkit</li>
+<li>Deep Learning toolkit</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h4 id="experiment-prepration">Experiment prepration</h4>
+<p>We generate 11 traffic classifiers from 11 cameras’ traffic, referred to as Victim-exclusive. We then use each classifier to infer the state of the corresponding new camera 100 times, whose traffic data are not included in the training data set of this classifier. For comparison, we also investigate the performance of the classifier (called Victim-inclusive) that utilizes all 11 cameras for training, and use it to infer the state of every camera 100 times.</p>
+<h4 id="calculation-method">Calculation method:</h4>
+<p>For Success Rate:<br>
+<code>Success rate = Successful cases / Total cases</code><br>
+For detection time:<br>
+<code>Detection Time = Time spent on detecting the camera state</code></p>
+<h4 id="getting-result">Getting Result</h4>
+<p>The final result contains two figures.</p>
+<p>First figure is the <strong>Successful Rate</strong> across 11 different cameras. The following data are done by manually calculating the rate then logging into the excel file.</p>
+<p>We use the Microsoft Excel to generate the data, and the following xls files are used to generate the result. The data filled in xls file is fetched from the same source we used in our matlab code. Download <a href="http://weakcamid.info/fig18.xlsx">xls</a></p>
+<p>Then the following figure can be generated from the xlsx file:</p>
+<p><img src="https://weakcamid.info/figs/fig18.png" alt="enter image description here"></p>
+<p>Second figure is the <strong>Detection time</strong> figures across 11 different camera modes for testing Victim-exclusive and Victim-inclusive cases. The output figure is output from Matlab code, and the data is manually enter in the Matlab code as variables.</p>
+<pre class=" language-matlab"><code class="prism  language-matlab">close all
+
+clear
+
+clc
+
+LabelFontSize<span class="token operator">=</span><span class="token number">22</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [62.9, 57.7, 53.2, 52.7, 61.7, 49.6, 59.0, 58.2, 66.5, 52.6, 49.5]</span>
+
+<span class="token comment">%False Negative Rate Array: [2.6, 0.3, 0.9, 4.9, 5.6, 2.6, 5.9, 2.1, 2.2, 2.7, 1.9]</span>
+
+<span class="token comment">%True Negative Rate Array: [30.1, 34.3, 40.8, 42.3, 31.3, 43.4, 35.0, 34.8, 30.5, 42.4, 44.5]</span>
+
+<span class="token comment">%False Positive Rate Array: [4.4, 7.7, 5.1, 0.1, 1.4, 4.4, 0.1, 4.9, 0.8, 2.3, 4.1]</span>
+
+c1<span class="token operator">=</span><span class="token punctuation">[</span><span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [63.3, 60.2, 59.0, 53.2, 65.4, 61.1, 57.8, 48.4, 62.5, 55.6, 50.4]</span>
+
+<span class="token comment">%False Negative Rate Array: [4.6, 1.1, 0.7, 0.7, 3.3, 3.6, 2.2, 4.7, 0.1, 3.2, 1.2]</span>
+
+<span class="token comment">%True Negative Rate Array: [31.7, 33.8, 36.0, 42.8, 30.6, 33.9, 38.2, 46.6, 36.5, 40.4, 45.6]</span>
+
+<span class="token comment">%False Positive Rate Array: [0.4, 4.9, 4.3, 3.3, 0.7, 1.4, 1.8, 0.3, 0.9, 0.8, 2.8]</span>
+
+c2<span class="token operator">=</span><span class="token punctuation">[</span><span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.99</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+X<span class="token operator">=</span><span class="token number">1</span><span class="token operator">:</span><span class="token number">1</span><span class="token operator">:</span><span class="token number">11</span><span class="token punctuation">;</span>
+
+<span class="token function">plot</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span>c1<span class="token punctuation">,</span><span class="token string">'Color'</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token number">0</span> <span class="token number">0</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'LineStyle'</span><span class="token punctuation">,</span><span class="token string">':'</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'O'</span><span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span>c2<span class="token punctuation">,</span><span class="token string">'Color'</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token number">1</span> <span class="token number">0</span> <span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'LineStyle'</span><span class="token punctuation">,</span><span class="token string">'-'</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'+'</span><span class="token punctuation">)</span>
+
+<span class="token function">xticklabels</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">'C1'</span><span class="token punctuation">,</span><span class="token string">'C2'</span><span class="token punctuation">,</span><span class="token string">'C3'</span><span class="token punctuation">,</span><span class="token string">'C4'</span><span class="token punctuation">,</span><span class="token string">'C5'</span><span class="token punctuation">,</span><span class="token string">'C6'</span><span class="token punctuation">,</span><span class="token string">'C7'</span><span class="token punctuation">,</span><span class="token string">'C8'</span><span class="token punctuation">,</span><span class="token string">'C9'</span><span class="token punctuation">,</span><span class="token string">'C10'</span><span class="token punctuation">,</span><span class="token string">'C11'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+grid off
+
+<span class="token function">xlabel</span><span class="token punctuation">(</span><span class="token string">'Camera ID'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylabel</span><span class="token punctuation">(</span><span class="token string">'F1 Score'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">legend</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">'Victim-exclusive'</span><span class="token punctuation">,</span><span class="token string">'Victim-inclusive'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>gca<span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylim</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token number">0.6</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">xlim</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token number">1</span> <span class="token number">11</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>The following figure from the Matlab code is Figure 19:<br>
+<img src="https://weakcamid.info/figs/fig19.png" alt="Success Rate"></p>
+</div>
+</body>
+
+</html>

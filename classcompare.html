@@ -26,9 +26,9 @@ Experiment setup:</p>
 <h4 id="data-collection">Data collection</h4>
 <p>We have a dataset containing feature vectors coming from 11 different cameras that we examine for training. We perform different durations of motion from 2 to 16 seconds with increments of 2. For every motion length, we collect 70 corresponding traffic flows for each camera state of every camera, enabling us to obtain high inference accuracy. Thus, the built dataset has 11 × 8 × 70 × 4 = 24, 640 feature vectors in total. We apply the common 80/20 split for training and test sets.</p>
 <h4 id="calculation-method">Calculation method:</h4>
-<p>For localization error:<br>
-<code>Success rate = Successful cases / Total cases</code><br>
-For localization time:<br>
+<p>For Success Rate:<br>
+<code>Success Rate = Successful cases / Total cases</code><br>
+For F1 Score:<br>
 <code>F1 Score = (Precision * Recall) / (Precision + Recall)</code></p>
 <h3 id="code-section">Code Section</h3>
 <p>Classifiers code for DT:</p>

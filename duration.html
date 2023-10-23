@@ -46,9 +46,9 @@
 </table><p>Different durations of motion occurring within the motion detection area of the camera (with a subscription or in live view mode) may generate varying wireless traffic volumes.</p>
 <p>Total attempts = 11×4×5×10= 2, 200 attempts.</p>
 <h4 id="calculation-method">Calculation method:</h4>
-<p>For localization error:<br>
-<code>Success rate = Successful cases / Total cases</code><br>
-For localization time:<br>
+<p>For Success Rate:<br>
+<code>Success Rate = Successful cases / Total cases</code><br>
+For F1 Score:<br>
 <code>F1 Score = (Precision * Recall) / (Precision + Recall)</code></p>
 <h4 id="getting-result">Getting Result</h4>
 <p>The final result contains four figures.</p>
@@ -139,7 +139,7 @@ hold off
 </code></pre>
 <p>The following figure from the Matlab code is Figure 13:<br>
 <img src="https://weakcamid.info/figs/fig13.png" alt="Success Rate"></p>
-<p>Third and fourth figure is the <strong>Average Success Rate</strong> and <strong>F1 Scores</strong> for all camera states for each camera with varying motion durations.</p>
+<p>Third and fourth figure is the <strong>Average Success Rate</strong> and <strong>F1 Scores</strong>  for each camera with varying motion durations.</p>
 <p>Matlab code for <strong>Average Success Rate</strong>:</p>
 <pre class=" language-matlab"><code class="prism  language-matlab"><span class="token comment">% user study</span>
 
