@@ -1,0 +1,326 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>duration</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h4 id="home."><a href="http://weakcamid.info/">Home</a>.</h4>
+<h2 id="duration-result">Duration result</h2>
+<p>The following software/modules needed to get our result:</p>
+<ul>
+<li>Python 3.9
+<ul>
+<li>Scikit-learn 0.24</li>
+<li>Numpy 1.13.3</li>
+<li>Scipy 0.19.1</li>
+<li>matplotlib 2.1.1</li>
+</ul>
+</li>
+<li>Matlab R2023_a
+<ul>
+<li>Machine learning toolkit</li>
+<li>Deep Learning toolkit</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h4 id="we-change-the-motion-duration-from-8-s-to-16-s-with-increments-of-2-s.-for-each-duration-we-perform-10-attempts-of-weakcamid.">We change the motion duration from 8 s to 16 s, with increments of 2 s. For each duration, we perform 10 attempts of WeakCamID.</h4>
+
+<table>
+<thead>
+<tr>
+<th>8</th>
+<th>10</th>
+<th>12</th>
+<th>14</th>
+<th>16</th>
+<th>(<span class="katex--inline"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi></mrow><annotation encoding="application/x-tex">s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height: 0.43056em; vertical-align: 0em;"></span><span class="mord mathnormal">s</span></span></span></span></span>)</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table><p>Different durations of motion occurring within the motion detection area of the camera (with a subscription or in live view mode) may generate varying wireless traffic volumes.</p>
+<p>Total attempts = 11×4×5×10= 2, 200 attempts.</p>
+<h4 id="calculation-method">Calculation method:</h4>
+<p>For localization error:<br>
+<code>Success rate = Successful cases / Total cases</code><br>
+For localization time:<br>
+<code>F1 Score = (Precision * Recall) / (Precision + Recall)</code></p>
+<h4 id="getting-result">Getting Result</h4>
+<p>The final result contains four figures.</p>
+<p>First figure is the <strong>Successful Rate</strong> figure 12 across 4 different camera modes. The following data are done by manually calculating the rate then logging into the excel file.</p>
+<p>We use the Microsoft Excel to generate the data, and the following xls files are used to generate the result. The data filled in xls file is fetched from the same source we used in our matlab code. Download <a href="http://weakcamid.info/fig12.xlsx">xls</a></p>
+<p>Then the following figure can be generated from the xlsx file:</p>
+<p><img src="https://weakcamid.info/figs/fig12.png" alt="enter image description here"></p>
+<p>Second figure is the <strong>F1 Score</strong> figures across 4 different camera modes in different motion durations. The following data are done by F1 score output from the training then logging into the Matlab code as a variable.</p>
+<pre class=" language-matlab"><code class="prism  language-matlab"><span class="token comment">% user study</span>
+
+clear
+
+clc
+
+close all
+
+LabelFontSize<span class="token operator">=</span><span class="token number">22</span><span class="token punctuation">;</span>
+
+LineWidth<span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [55.3, 55.9, 53.0, 64.3, 56.4]</span>
+
+<span class="token comment">%False Negative Rate Array: [8.2, 6.5, 3.2, 2.0, 0.3]</span>
+
+<span class="token comment">%True Negative Rate Array: [33.3, 36.7, 42.2, 31.9, 41.0]</span>
+
+<span class="token comment">%False Positive Rate Array: [3.3, 1.0, 1.6, 1.9, 2.3]</span>
+
+suc_4 <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.91</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [55.9, 56.4, 59.6, 64.2, 50.2]</span>
+
+<span class="token comment">%False Negative Rate Array: [1.9, 7.8, 1.2, 0.8, 3.9]</span>
+
+<span class="token comment">%True Negative Rate Array: [31.8, 35.2, 34.3, 30.5, 44.9]</span>
+
+<span class="token comment">%False Positive Rate Array: [10.4, 0.5, 4.9, 4.4, 1.0]</span>
+
+suc_2 <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.9</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [47.6, 54.6, 61.6, 64.4, 57.0]</span>
+
+<span class="token comment">%False Negative Rate Array: [3.6, 4.6, 2.1, 1.4, 3.2]</span>
+
+<span class="token comment">%True Negative Rate Array: [43.6, 40.5, 34.0, 32.1, 39.8]</span>
+
+<span class="token comment">%False Positive Rate Array: [5.2, 0.3, 2.3, 2.0, 0.0]</span>
+
+suc_3 <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.92</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [62.4, 58.4, 58.5, 56.6, 56.5]</span>
+
+<span class="token comment">%False Negative Rate Array: [3.1, 2.4, 0.1, 1.5, 0.3]</span>
+
+<span class="token comment">%True Negative Rate Array: [29.9, 37.9, 38.3, 41.5, 42.1]</span>
+
+<span class="token comment">%False Positive Rate Array: [4.6, 1.3, 3.2, 0.4, 1.1]</span>
+
+suc_1 <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.94</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.99</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+X<span class="token operator">=</span><span class="token number">8</span><span class="token operator">:</span><span class="token number">2</span><span class="token operator">:</span><span class="token number">16</span><span class="token punctuation">;</span>
+
+<span class="token function">plot</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span>suc_1<span class="token punctuation">,</span><span class="token string">'Color'</span><span class="token punctuation">,</span><span class="token punctuation">[</span><span class="token number">0.850980392156863</span> <span class="token number">0.325490196078431</span> <span class="token number">0.0980392156862745</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'LineStyle'</span><span class="token punctuation">,</span><span class="token string">'--'</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'&lt;'</span><span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span>suc_2<span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'*'</span><span class="token punctuation">,</span><span class="token string">'Color'</span><span class="token punctuation">,</span><span class="token punctuation">[</span><span class="token number">0</span> <span class="token number">0</span> <span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'&gt;'</span><span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span>suc_3<span class="token punctuation">,</span><span class="token string">'Color'</span><span class="token punctuation">,</span><span class="token punctuation">[</span><span class="token number">0.717647058823529</span> <span class="token number">0.274509803921569</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'LineStyle'</span><span class="token punctuation">,</span><span class="token string">'--'</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'x'</span><span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span>suc_4<span class="token punctuation">,</span><span class="token string">'Color'</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token number">0</span> <span class="token number">0</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'LineStyle'</span><span class="token punctuation">,</span><span class="token string">':'</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'O'</span><span class="token punctuation">)</span>
+
+hold off
+
+<span class="token function">xlabel</span><span class="token punctuation">(</span><span class="token string">'Duration (sec)'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylabel</span><span class="token punctuation">(</span><span class="token string">'F1 Score'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylim</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token number">0.6</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">legend</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">'Unpaid - Normal'</span><span class="token punctuation">,</span><span class="token string">'Unpaid - Live View'</span><span class="token punctuation">,</span> <span class="token string">'Paid - Normal'</span><span class="token punctuation">,</span> <span class="token string">'Paid - Live View'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>gca<span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+</code></pre>
+<p>The following figure from the Matlab code is Figure 13:<br>
+<img src="https://weakcamid.info/figs/fig13.png" alt="Success Rate"></p>
+<p>Third and fourth figure is the <strong>Average Success Rate</strong> and <strong>F1 Scores</strong> for all camera states for each camera with varying motion durations.</p>
+<p>Matlab code for <strong>Average Success Rate</strong>:</p>
+<pre class=" language-matlab"><code class="prism  language-matlab"><span class="token comment">% user study</span>
+
+clear
+
+clc
+
+close all
+
+LabelFontSize<span class="token operator">=</span><span class="token number">22</span><span class="token punctuation">;</span>
+
+LineWidth<span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [55.3, 55.9, 53.0, 64.3, 56.4]</span>
+
+<span class="token comment">%False Negative Rate Array: [8.2, 6.5, 3.2, 2.0, 0.3]</span>
+
+<span class="token comment">%True Negative Rate Array: [33.3, 36.7, 42.2, 31.9, 41.0]</span>
+
+<span class="token comment">%False Positive Rate Array: [3.3, 1.0, 1.6, 1.9, 2.3]</span>
+
+suc_4 <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.91</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [55.9, 56.4, 59.6, 64.2, 50.2]</span>
+
+<span class="token comment">%False Negative Rate Array: [1.9, 7.8, 1.2, 0.8, 3.9]</span>
+
+<span class="token comment">%True Negative Rate Array: [31.8, 35.2, 34.3, 30.5, 44.9]</span>
+
+<span class="token comment">%False Positive Rate Array: [10.4, 0.5, 4.9, 4.4, 1.0]</span>
+
+suc_2 <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.9</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [47.6, 54.6, 61.6, 64.4, 57.0]</span>
+
+<span class="token comment">%False Negative Rate Array: [3.6, 4.6, 2.1, 1.4, 3.2]</span>
+
+<span class="token comment">%True Negative Rate Array: [43.6, 40.5, 34.0, 32.1, 39.8]</span>
+
+<span class="token comment">%False Positive Rate Array: [5.2, 0.3, 2.3, 2.0, 0.0]</span>
+
+suc_3 <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.92</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [62.4, 58.4, 58.5, 56.6, 56.5]</span>
+
+<span class="token comment">%False Negative Rate Array: [3.1, 2.4, 0.1, 1.5, 0.3]</span>
+
+<span class="token comment">%True Negative Rate Array: [29.9, 37.9, 38.3, 41.5, 42.1]</span>
+
+<span class="token comment">%False Positive Rate Array: [4.6, 1.3, 3.2, 0.4, 1.1]</span>
+
+suc_1 <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">0.94</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.99</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+X<span class="token operator">=</span><span class="token number">8</span><span class="token operator">:</span><span class="token number">2</span><span class="token operator">:</span><span class="token number">16</span><span class="token punctuation">;</span>
+
+<span class="token function">plot</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span>suc_1<span class="token punctuation">,</span><span class="token string">'Color'</span><span class="token punctuation">,</span><span class="token punctuation">[</span><span class="token number">0.850980392156863</span> <span class="token number">0.325490196078431</span> <span class="token number">0.0980392156862745</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'LineStyle'</span><span class="token punctuation">,</span><span class="token string">'--'</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'&lt;'</span><span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span>suc_2<span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'*'</span><span class="token punctuation">,</span><span class="token string">'Color'</span><span class="token punctuation">,</span><span class="token punctuation">[</span><span class="token number">0</span> <span class="token number">0</span> <span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'&gt;'</span><span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span>suc_3<span class="token punctuation">,</span><span class="token string">'Color'</span><span class="token punctuation">,</span><span class="token punctuation">[</span><span class="token number">0.717647058823529</span> <span class="token number">0.274509803921569</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'LineStyle'</span><span class="token punctuation">,</span><span class="token string">'--'</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'x'</span><span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span>suc_4<span class="token punctuation">,</span><span class="token string">'Color'</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token number">0</span> <span class="token number">0</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'LineStyle'</span><span class="token punctuation">,</span><span class="token string">':'</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'O'</span><span class="token punctuation">)</span>
+
+hold off
+
+<span class="token function">xlabel</span><span class="token punctuation">(</span><span class="token string">'Duration (sec)'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylabel</span><span class="token punctuation">(</span><span class="token string">'F1 Score'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylim</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token number">0.6</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">legend</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">'Unpaid - Normal'</span><span class="token punctuation">,</span><span class="token string">'Unpaid - Live View'</span><span class="token punctuation">,</span> <span class="token string">'Paid - Normal'</span><span class="token punctuation">,</span> <span class="token string">'Paid - Live View'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>gca<span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+</code></pre>
+<p>We  generated the following figure for <strong>Average Success Rate</strong>:<br>
+<img src="https://weakcamid.info/figs/fig14.png" alt="Success Rate"></p>
+<p>Matlab code for <strong>F1 Scores</strong>:</p>
+<pre class=" language-matlab"><code class="prism  language-matlab">close all
+
+clear
+
+clc
+
+LabelFontSize<span class="token operator">=</span><span class="token number">22</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [59.8, 61.2, 51.2, 50.5, 56.9, 47.2, 47.6, 46.4, 57.3, 50.9, 63.1]</span>
+
+<span class="token comment">%False Negative Rate Array: [7.3, 12.3, 5.8, 0.0, 5.3, 7.5, 7.9, 0.3, 2.3, 6.8, 6.5]</span>
+
+<span class="token comment">%True Negative Rate Array: [30.1, 26.5, 40.8, 37.5, 34.1, 40.6, 41.2, 44.6, 36.5, 42.1, 28.9]</span>
+
+<span class="token comment">%False Positive Rate Array: [2.8, 0.0, 2.2, 12.0, 3.7, 4.7, 3.2, 8.7, 3.9, 0.2, 1.5]</span>
+
+v_8<span class="token operator">=</span><span class="token punctuation">[</span><span class="token number">0.92</span><span class="token punctuation">,</span> <span class="token number">0.91</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.89</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.89</span><span class="token punctuation">,</span> <span class="token number">0.9</span><span class="token punctuation">,</span> <span class="token number">0.91</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [64.2, 51.3, 56.9, 54.3, 64.8, 57.4, 58.5, 48.9, 59.2, 54.4, 61.7]</span>
+
+<span class="token comment">%False Negative Rate Array: [2.1, 4.8, 3.2, 4.0, 4.5, 1.1, 0.2, 4.6, 2.2, 7.4, 1.7]</span>
+
+<span class="token comment">%True Negative Rate Array: [29.0, 39.0, 37.1, 38.0, 29.5, 35.3, 35.4, 44.1, 38.6, 37.6, 32.3]</span>
+
+<span class="token comment">%False Positive Rate Array: [4.6, 4.9, 2.8, 3.6, 1.2, 6.2, 5.9, 2.4, 0.0, 0.6, 4.3]</span>
+
+v_10<span class="token operator">=</span><span class="token punctuation">[</span><span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.91</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [51.6, 57.1, 60.9, 51.8, 64.3, 56.8, 54.8, 50.9, 57.4, 53.2, 60.2]</span>
+
+<span class="token comment">%False Negative Rate Array: [1.4, 4.0, 4.5, 2.7, 1.7, 2.6, 2.3, 4.2, 0.3, 3.3, 5.7]</span>
+
+<span class="token comment">%True Negative Rate Array: [43.1, 37.8, 34.1, 44.2, 32.6, 39.7, 41.3, 43.1, 40.9, 42.8, 32.8]</span>
+
+<span class="token comment">%False Positive Rate Array: [3.9, 1.1, 0.5, 1.3, 1.4, 0.9, 1.6, 1.8, 1.3, 0.7, 1.3]</span>
+
+v_12<span class="token operator">=</span><span class="token punctuation">[</span><span class="token number">0.95</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.94</span><span class="token punctuation">,</span> <span class="token number">0.99</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.95</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [51.2, 60.4, 56.9, 61.0, 64.6, 57.6, 55.9, 57.4, 53.0, 63.1, 63.0]</span>
+
+<span class="token comment">%False Negative Rate Array: [2.6, 3.3, 1.6, 3.4, 2.4, 1.5, 1.8, 0.4, 1.0, 2.0, 2.6]</span>
+
+<span class="token comment">%True Negative Rate Array: [41.3, 34.4, 39.1, 35.0, 32.3, 39.2, 40.6, 37.6, 45.0, 32.9, 34.0]</span>
+
+<span class="token comment">%False Positive Rate Array: [4.9, 1.9, 2.4, 0.6, 0.6, 1.7, 1.7, 4.6, 1.0, 2.0, 0.4]</span>
+
+v_14<span class="token operator">=</span><span class="token punctuation">[</span><span class="token number">0.93</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">%True Positive Rate Array: [63.0, 62.2, 59.1, 49.2, 65.9, 51.5, 50.9, 54.7, 57.4, 58.0, 54.1]</span>
+
+<span class="token comment">%False Negative Rate Array: [1.6, 2.7, 1.4, 0.8, 0.7, 1.7, 0.3, 2.3, 0.8, 4.7, 1.5]</span>
+
+<span class="token comment">%True Negative Rate Array: [34.0, 33.5, 35.9, 47.0, 31.0, 45.6, 45.7, 42.3, 41.4, 37.0, 41.9]</span>
+
+<span class="token comment">%False Positive Rate Array: [1.4, 1.6, 3.6, 3.1, 2.4, 1.2, 3.1, 0.7, 0.3, 0.3, 2.5]</span>
+
+v_16<span class="token operator">=</span><span class="token punctuation">[</span><span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.98</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.97</span><span class="token punctuation">,</span> <span class="token number">0.99</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">,</span> <span class="token number">0.96</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+X<span class="token operator">=</span><span class="token number">1</span><span class="token operator">:</span><span class="token number">1</span><span class="token operator">:</span><span class="token number">11</span><span class="token punctuation">;</span>
+
+<span class="token function">plot</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span>v_8<span class="token punctuation">,</span><span class="token string">'Color'</span><span class="token punctuation">,</span><span class="token punctuation">[</span><span class="token number">0.850980392156863</span> <span class="token number">0.325490196078431</span> <span class="token number">0.0980392156862745</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'LineStyle'</span><span class="token punctuation">,</span><span class="token string">'--'</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'&lt;'</span><span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span>v_10<span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'*'</span><span class="token punctuation">,</span><span class="token string">'Color'</span><span class="token punctuation">,</span><span class="token punctuation">[</span><span class="token number">0</span> <span class="token number">0</span> <span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'&gt;'</span><span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span>v_12<span class="token punctuation">,</span><span class="token string">'Color'</span><span class="token punctuation">,</span><span class="token punctuation">[</span><span class="token number">0.717647058823529</span> <span class="token number">0.274509803921569</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'LineStyle'</span><span class="token punctuation">,</span><span class="token string">'--'</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'x'</span><span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span>v_14<span class="token punctuation">,</span><span class="token string">'Color'</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token number">0</span> <span class="token number">0</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'LineStyle'</span><span class="token punctuation">,</span><span class="token string">':'</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'O'</span><span class="token punctuation">)</span>
+
+hold on
+
+<span class="token function">plot</span><span class="token punctuation">(</span>X<span class="token punctuation">,</span>v_16<span class="token punctuation">,</span><span class="token string">'Color'</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token number">1</span> <span class="token number">0</span> <span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token string">'LineWidth'</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token string">'LineStyle'</span><span class="token punctuation">,</span><span class="token string">'-'</span><span class="token punctuation">,</span><span class="token string">'MarkerSize'</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token string">'Marker'</span><span class="token punctuation">,</span><span class="token string">'+'</span><span class="token punctuation">)</span>
+
+<span class="token function">xticklabels</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">'C1'</span><span class="token punctuation">,</span><span class="token string">'C2'</span><span class="token punctuation">,</span><span class="token string">'C3'</span><span class="token punctuation">,</span><span class="token string">'C4'</span><span class="token punctuation">,</span><span class="token string">'C5'</span><span class="token punctuation">,</span><span class="token string">'C6'</span><span class="token punctuation">,</span><span class="token string">'C7'</span><span class="token punctuation">,</span><span class="token string">'C8'</span><span class="token punctuation">,</span><span class="token string">'C9'</span><span class="token punctuation">,</span><span class="token string">'C10'</span><span class="token punctuation">,</span><span class="token string">'C11'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+grid off
+
+<span class="token function">xlabel</span><span class="token punctuation">(</span><span class="token string">'Camera ID'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylabel</span><span class="token punctuation">(</span><span class="token string">'F1 Score'</span><span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">legend</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">'8 sec'</span><span class="token punctuation">,</span><span class="token string">'10 sec'</span><span class="token punctuation">,</span> <span class="token string">'12 sec'</span><span class="token punctuation">,</span> <span class="token string">'14 sec'</span><span class="token punctuation">,</span> <span class="token string">'16 sec'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">set</span><span class="token punctuation">(</span>gca<span class="token punctuation">,</span><span class="token string">'FontSize'</span><span class="token punctuation">,</span>LabelFontSize<span class="token punctuation">)</span>
+
+<span class="token function">ylim</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token number">0.6</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">xlim</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token number">1</span> <span class="token number">11</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>We  generated the following figure for <strong>F1 Scores</strong>:<br>
+<img src="https://weakcamid.info/figs/fig15.png" alt="Success Rate"></p>
+</div>
+</body>
+
+</html>
