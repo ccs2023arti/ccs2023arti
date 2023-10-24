@@ -103,8 +103,9 @@ To analyze and show data from a <code>.pcap</code> file, including traffic volum
 
 <span class="token keyword">def</span> <span class="token function">create_dataframe</span><span class="token punctuation">(</span>timestamps<span class="token punctuation">,</span> sizes<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token comment"># Creating a DataFrame from the lists</span>
+    <span class="token comment"># 'Timestamp': pd.to_datetime(timestamps, unit='s') if 		 parsed is needed in your camera test case</span>
     data <span class="token operator">=</span> <span class="token punctuation">{</span>
-        <span class="token string">'Timestamp'</span><span class="token punctuation">:</span> pd<span class="token punctuation">.</span>to_datetime<span class="token punctuation">(</span>timestamps<span class="token punctuation">,</span> unit<span class="token operator">=</span><span class="token string">'s'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token string">'Timestamp'</span><span class="token punctuation">:</span> timestamps<span class="token punctuation">,</span>
         <span class="token string">'Packet Size (bytes)'</span><span class="token punctuation">:</span> sizes
     <span class="token punctuation">}</span>
     df <span class="token operator">=</span> pd<span class="token punctuation">.</span>DataFrame<span class="token punctuation">(</span>data<span class="token punctuation">)</span>
@@ -170,13 +171,8 @@ If you want to create a binary file that contains packet information from a <cod
             <span class="token comment"># 'I' format stands for unsigned int (4 bytes)</span>
             <span class="token comment"># It represents the relative time and size respectively</span>
             data <span class="token operator">=</span> struct<span class="token punctuation">.</span>pack<span class="token punctuation">(</span><span class="token string">'II'</span><span class="token punctuation">,</span> time<span class="token punctuation">,</span> size<span class="token punctuation">)</span>
-
             <span class="token comment"># Writing the time and size data to the binary file</span>
             <span class="token builtin">file</span><span class="token punctuation">.</span>write<span class="token punctuation">(</span>data<span class="token punctuation">)</span>
-
-            <span class="token comment"># Writing the actual packet data to the binary file</span>
-            <span class="token builtin">file</span><span class="token punctuation">.</span>write<span class="token punctuation">(</span>packet_data<span class="token punctuation">)</span>
-
             <span class="token comment"># Increment the relative time counter</span>
             time <span class="token operator">+=</span> <span class="token number">1</span>
 
@@ -195,9 +191,9 @@ If you want to create a binary file that contains packet information from a <cod
 <span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
     main<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
-<p>This script parses the <code>.pcap</code> file and collects the size and raw data of each packet. It then writes this information to a binary file, prepending each packet’s data with its relative timestamp (starting from 1) and the packet’s size.</p>
+<p>This script parses the <code>.pcap</code> file and collects the size and raw data of each packet. It then writes this information to a binary file, prepending each packet’s size data with its relative timestamp (starting from 1) and get ready to be feed into the tester.</p>
 <p>The ‘II’ format in the <code>struct.pack</code> function tells Python to prepare two unsigned integers (4 bytes each) for writing to the binary file.</p>
-<p>This binary file can later be read by classifiers.</p>
+<p>This binary file can later be read by classifiers. But you still need to process the bin file and tune it into the data format you like for the classifiers.</p>
 <h3 id="code-section">Code Section</h3>
 <p>Classifiers code for DT:</p>
 <pre class=" language-python"><code class="prism  language-python"><span class="token keyword">import</span> struct
