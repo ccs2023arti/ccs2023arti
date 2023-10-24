@@ -30,72 +30,721 @@ Experiment setup:</p>
 <code>Success Rate = Successful cases / Total cases</code><br>
 For F1 Score:<br>
 <code>F1 Score = (Precision * Recall) / (Precision + Recall)</code></p>
+<h4 id="getting-start-with-airodump-ngairmon-ng">Getting start with Airodump-ng/Airmon-ng</h4>
+<p>Using “airmon-ng” and other tools in the Aircrack-ng suite, you can monitor network traffic, you also don’t have to have the password for that network.</p>
+<p>Airmon-ng itself is used to put your wireless network card into monitor mode, where it can observe all the wireless traffic it receives, rather than only traffic intended for it. However, to capture traffic from a specific MAC address, you’ll need to use additional tools like “airodump-ng”.</p>
+<ol>
+<li>
+<p><strong>Start the Wireless Interface in Monitor Mode:</strong><br>
+First, you’ll need to start your wireless interface in monitor mode using <code>airmon-ng</code>.</p>
+<p>a. Open a terminal window.<br>
+b. You might want to stop some services that could interfere with <code>airmon-ng</code>. To do this, type:</p>
+<pre><code>airmon-ng check kill
+</code></pre>
+<p>(Remember, this command can kill your internet connection, so ensure you’re not doing anything internet-dependent at the time.)</p>
+<p>c. Start your wireless device in monitor mode by typing:</p>
+<pre><code>airmon-ng start wlan0
+</code></pre>
+<p>Replace “wlan0” with the name of your wireless device. After running this command, you should see a new interface that is your wireless device but in monitor mode (e.g., ‘wlan0mon’).</p>
+</li>
+<li>
+<p><strong>Capture Traffic:</strong><br>
+Now, you can use <code>airodump-ng</code> to capture the packets.</p>
+<p>a. In the terminal, type:</p>
+<pre><code>airodump-ng wlan0mon
+</code></pre>
+<p>(Replace “wlan0mon” with your monitor interface name.)</p>
+<p>b. You’ll see a list of wireless networks and connected clients. Note the MAC address of the target device.</p>
+<p>c. Now, to capture packets from that MAC address, use the following command:</p>
+<pre><code>airodump-ng -c [channel] --bssid [router MAC] -d [target MAC] --write [output file name] wlan0mon
+</code></pre>
+<p>Replace:</p>
+<ul>
+<li><code>[channel]</code> with the channel number of the router.</li>
+<li><code>[router MAC]</code> with the MAC address of the target network’s router.</li>
+<li><code>[target MAC]</code> with the MAC address of the device you want to monitor.</li>
+<li><code>[output file name]</code> with the name you want for your output file (this is where the packets will be saved).</li>
+<li>And again, replace “wlan0mon” with your monitor interface name.</li>
+</ul>
+</li>
+<li>
+<p><strong>Analyze the Traffic:</strong><br>
+Once you’ve captured enough data, you can analyze the traffic in various ways. One common method is using a program like Wireshark.</p>
+<ul>
+<li>Open the <code>.cap</code> file you created with Wireshark, and you’ll be able to see detailed information about each packet and apply filters to find specific types of traffic.</li>
+</ul>
+</li>
+<li>
+<p><strong>Format the pcap file</strong><br>
+To analyze and show data from a <code>.pcap</code> file, including traffic volume and other packet details. Below is an example of how you can use the script to incorporate <code>pandas</code> and present a detailed view of the traffic from camera.</p>
+<p>Before you start, make sure you have the necessary libraries installed. You can install them using pip if you haven’t already:</p>
+<pre class=" language-bash"><code class="prism  language-bash">pip <span class="token function">install</span> scapy pandas
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">import</span> pandas <span class="token keyword">as</span> pd
+<span class="token keyword">import</span> scapy<span class="token punctuation">.</span><span class="token builtin">all</span> <span class="token keyword">as</span> scapy  <span class="token comment"># Importing the scapy library</span>
+
+<span class="token keyword">def</span> <span class="token function">parse_pcap</span><span class="token punctuation">(</span>file_name<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># Reading packets from the .pcap file</span>
+    packets <span class="token operator">=</span> scapy<span class="token punctuation">.</span>rdpcap<span class="token punctuation">(</span>file_name<span class="token punctuation">)</span>
+
+    <span class="token comment"># Lists to hold packet details</span>
+    timestamps <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+    sizes <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+    <span class="token keyword">for</span> packet <span class="token keyword">in</span> packets<span class="token punctuation">:</span>
+        <span class="token comment"># Extracting the timestamp and adding it to the list</span>
+        timestamps<span class="token punctuation">.</span>append<span class="token punctuation">(</span>packet<span class="token punctuation">.</span>time<span class="token punctuation">)</span>
+
+        <span class="token comment"># Extracting the size of the packet and adding it to the list</span>
+        packet_size <span class="token operator">=</span> <span class="token builtin">len</span><span class="token punctuation">(</span>packet<span class="token punctuation">)</span>
+        sizes<span class="token punctuation">.</span>append<span class="token punctuation">(</span>packet_size<span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span> timestamps<span class="token punctuation">,</span> sizes
+
+<span class="token keyword">def</span> <span class="token function">create_dataframe</span><span class="token punctuation">(</span>timestamps<span class="token punctuation">,</span> sizes<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># Creating a DataFrame from the lists</span>
+    data <span class="token operator">=</span> <span class="token punctuation">{</span>
+        <span class="token string">'Timestamp'</span><span class="token punctuation">:</span> pd<span class="token punctuation">.</span>to_datetime<span class="token punctuation">(</span>timestamps<span class="token punctuation">,</span> unit<span class="token operator">=</span><span class="token string">'s'</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token string">'Packet Size (bytes)'</span><span class="token punctuation">:</span> sizes
+    <span class="token punctuation">}</span>
+    df <span class="token operator">=</span> pd<span class="token punctuation">.</span>DataFrame<span class="token punctuation">(</span>data<span class="token punctuation">)</span>
+
+    <span class="token comment"># Calculating the total traffic volume</span>
+    total_volume <span class="token operator">=</span> df<span class="token punctuation">[</span><span class="token string">'Packet Size (bytes)'</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token builtin">sum</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span> df<span class="token punctuation">,</span> total_volume
+
+<span class="token keyword">def</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    pcap_file <span class="token operator">=</span> <span class="token string">'input.pcap'</span>  <span class="token comment"># Specify your .pcap file</span>
+
+    <span class="token comment"># Parse the PCAP file</span>
+    timestamps<span class="token punctuation">,</span> sizes <span class="token operator">=</span> parse_pcap<span class="token punctuation">(</span>pcap_file<span class="token punctuation">)</span>
+
+    <span class="token comment"># Create a DataFrame and calculate the total traffic volume</span>
+    packet_data<span class="token punctuation">,</span> total_volume <span class="token operator">=</span> create_dataframe<span class="token punctuation">(</span>timestamps<span class="token punctuation">,</span> sizes<span class="token punctuation">)</span>
+
+    <span class="token comment"># Displaying the first few rows of the DataFrame for a quick view</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>packet_data<span class="token punctuation">.</span>head<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># Displaying the total traffic volume</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Total traffic volume: {total_volume} bytes"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
+    main<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<p>In this script, we’re reading the <code>input.pcap</code> file, extracting the necessary information (timestamps and packet sizes), and then using this data to populate a <code>pandas</code> DataFrame for easy viewing and analysis.</p>
+<p>The script also calculates the total traffic volume by summing the sizes of all the packets. This total is printed out at the end, giving you a clear indication of the total data consumption observed within the <code>.pcap</code> file.</p>
+<p>This script gives you a foundation that you can build upon for more advanced analysis, such as traffic classification by protocol, data exchange between specific IP addresses, and more.<br>
+If you want to create a binary file that contains packet information from a <code>.pcap</code> file, such as relative timestamps and packet sizes, you will need to work with byte handling in Python. Below is a step-by-step script that reads a <code>.pcap</code> file, processes the packets, and writes the desired details to a binary file.</p>
+</li>
+</ol>
+<p>Before running the script, make sure <code>scapy</code> is installed. You can do this via pip if you haven’t already:</p>
+<pre class=" language-bash"><code class="prism  language-bash">pip <span class="token function">install</span> scapy
+</code></pre>
+<p>Here’s how you can create the script:</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">import</span> struct
+<span class="token keyword">import</span> scapy<span class="token punctuation">.</span><span class="token builtin">all</span> <span class="token keyword">as</span> scapy  <span class="token comment"># Importing the scapy library</span>
+
+<span class="token keyword">def</span> <span class="token function">parse_pcap</span><span class="token punctuation">(</span>file_name<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># Reading packets from the .pcap file</span>
+    packets <span class="token operator">=</span> scapy<span class="token punctuation">.</span>rdpcap<span class="token punctuation">(</span>file_name<span class="token punctuation">)</span>
+    
+    packet_details <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>  <span class="token comment"># List to store the details of each packet</span>
+
+    <span class="token keyword">for</span> packet <span class="token keyword">in</span> packets<span class="token punctuation">:</span>
+        <span class="token comment"># Extracting the size of the packet</span>
+        packet_size <span class="token operator">=</span> <span class="token builtin">len</span><span class="token punctuation">(</span>packet<span class="token punctuation">)</span>
+
+        <span class="token comment"># Adding the details to the list as a tuple (size, raw_packet_data)</span>
+        packet_details<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">(</span>packet_size<span class="token punctuation">,</span> <span class="token builtin">bytes</span><span class="token punctuation">(</span>packet<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">return</span> packet_details
+
+<span class="token keyword">def</span> <span class="token function">write_to_bin</span><span class="token punctuation">(</span>file_name<span class="token punctuation">,</span> packet_details<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>file_name<span class="token punctuation">,</span> <span class="token string">'wb'</span><span class="token punctuation">)</span> <span class="token keyword">as</span> <span class="token builtin">file</span><span class="token punctuation">:</span>
+        <span class="token comment"># Relative time starting from 1</span>
+        time <span class="token operator">=</span> <span class="token number">1</span>
+
+        <span class="token keyword">for</span> size<span class="token punctuation">,</span> packet_data <span class="token keyword">in</span> packet_details<span class="token punctuation">:</span>
+            <span class="token comment"># Creating a struct with time and size of the packet</span>
+            <span class="token comment"># 'I' format stands for unsigned int (4 bytes)</span>
+            <span class="token comment"># It represents the relative time and size respectively</span>
+            data <span class="token operator">=</span> struct<span class="token punctuation">.</span>pack<span class="token punctuation">(</span><span class="token string">'II'</span><span class="token punctuation">,</span> time<span class="token punctuation">,</span> size<span class="token punctuation">)</span>
+
+            <span class="token comment"># Writing the time and size data to the binary file</span>
+            <span class="token builtin">file</span><span class="token punctuation">.</span>write<span class="token punctuation">(</span>data<span class="token punctuation">)</span>
+
+            <span class="token comment"># Writing the actual packet data to the binary file</span>
+            <span class="token builtin">file</span><span class="token punctuation">.</span>write<span class="token punctuation">(</span>packet_data<span class="token punctuation">)</span>
+
+            <span class="token comment"># Increment the relative time counter</span>
+            time <span class="token operator">+=</span> <span class="token number">1</span>
+
+<span class="token keyword">def</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    pcap_file <span class="token operator">=</span> <span class="token string">'input.pcap'</span>  <span class="token comment"># Specify your .pcap file</span>
+    bin_file <span class="token operator">=</span> <span class="token string">'output.bin'</span>     <span class="token comment"># Specify the output binary file</span>
+
+    <span class="token comment"># Parse the PCAP file</span>
+    packet_details <span class="token operator">=</span> parse_pcap<span class="token punctuation">(</span>pcap_file<span class="token punctuation">)</span>
+
+    <span class="token comment"># Write the packet information to a binary file</span>
+    write_to_bin<span class="token punctuation">(</span>bin_file<span class="token punctuation">,</span> packet_details<span class="token punctuation">)</span>
+
+    <span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Data written to {bin_file}"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
+    main<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<p>This script parses the <code>.pcap</code> file and collects the size and raw data of each packet. It then writes this information to a binary file, prepending each packet’s data with its relative timestamp (starting from 1) and the packet’s size.</p>
+<p>The ‘II’ format in the <code>struct.pack</code> function tells Python to prepare two unsigned integers (4 bytes each) for writing to the binary file.</p>
+<p>This binary file can later be read by classifiers.</p>
 <h3 id="code-section">Code Section</h3>
 <p>Classifiers code for DT:</p>
-<pre class=" language-python"><code class="prism  language-python"><span class="token comment"># Import necessary libraries</span>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">import</span> struct
 <span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>tree <span class="token keyword">import</span> DecisionTreeClassifier
-<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>metrics <span class="token keyword">import</span> classification_report<span class="token punctuation">,</span> confusion_matrix
-<span class="token keyword">import</span> pandas <span class="token keyword">as</span> pd
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>model_selection <span class="token keyword">import</span> train_test_split
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>preprocessing <span class="token keyword">import</span> StandardScaler
+<span class="token keyword">import</span> joblib  <span class="token comment"># for saving model data</span>
 
-<span class="token comment"># Load data</span>
-data <span class="token operator">=</span> pd<span class="token punctuation">.</span>read_binary<span class="token punctuation">(</span><span class="token string">'traffic.bin'</span><span class="token punctuation">)</span>  
+<span class="token keyword">def</span> <span class="token function">read_bin_file</span><span class="token punctuation">(</span>file_name<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># List to store the features (in this case, only packet sizes)</span>
+    features <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
 
-<span class="token comment"># Prepare feature vectors and labels</span>
-X <span class="token operator">=</span> data<span class="token punctuation">.</span>drop<span class="token punctuation">(</span><span class="token string">'label'</span><span class="token punctuation">,</span> axis<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span>  <span class="token comment"># Assuming 'label' is the name of the column with target values</span>
-y <span class="token operator">=</span> data<span class="token punctuation">[</span><span class="token string">'label'</span><span class="token punctuation">]</span>
+    <span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>file_name<span class="token punctuation">,</span> <span class="token string">'rb'</span><span class="token punctuation">)</span> <span class="token keyword">as</span> <span class="token builtin">file</span><span class="token punctuation">:</span>
+        <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+            <span class="token comment"># Read the time and size data (total 8 bytes: two integers)</span>
+            packet_header <span class="token operator">=</span> <span class="token builtin">file</span><span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token number">8</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Initialize and train the decision tree classifier</span>
-clf <span class="token operator">=</span> DecisionTreeClassifier<span class="token punctuation">(</span><span class="token punctuation">)</span>
-clf<span class="token punctuation">.</span>fit<span class="token punctuation">(</span>X<span class="token punctuation">,</span> y<span class="token punctuation">)</span>
+            <span class="token keyword">if</span> <span class="token operator">not</span> packet_header<span class="token punctuation">:</span>
+                <span class="token keyword">break</span>  <span class="token comment"># End of file</span>
 
-<span class="token comment"># Predictions and evaluation</span>
-y_pred <span class="token operator">=</span> clf<span class="token punctuation">.</span>predict<span class="token punctuation">(</span>X<span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>confusion_matrix<span class="token punctuation">(</span>y<span class="token punctuation">,</span> y_pred<span class="token punctuation">)</span><span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>classification_report<span class="token punctuation">(</span>y<span class="token punctuation">,</span> y_pred<span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token comment"># Unpack the data</span>
+            time<span class="token punctuation">,</span> size <span class="token operator">=</span> struct<span class="token punctuation">.</span>unpack<span class="token punctuation">(</span><span class="token string">'II'</span><span class="token punctuation">,</span> packet_header<span class="token punctuation">)</span>
+
+            <span class="token comment"># Assume the rest of the data is the packet content and can be skipped</span>
+            <span class="token comment"># or read depending on whether you need more features from the raw packet</span>
+            <span class="token comment"># Here we read it to move the file cursor to the next packet</span>
+            <span class="token builtin">file</span><span class="token punctuation">.</span>read<span class="token punctuation">(</span>size<span class="token punctuation">)</span>  <span class="token comment"># 'size' is from the packet_header info</span>
+
+            <span class="token comment"># For simplicity, we're using only packet size for features, but usually, more features would be needed.</span>
+            features<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">[</span>size<span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span> features
+
+<span class="token keyword">def</span> <span class="token function">create_labels</span><span class="token punctuation">(</span>features<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># Create fictional labels for our dataset.</span>
+    <span class="token comment"># In a real scenario, labels could be 'malicious', 'safe', etc., based on deep packet inspection or flow metadata.</span>
+    <span class="token comment"># Here, we create a dummy criterion: if size &gt; 500 then label "1" else "0".</span>
+    labels <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">1</span> <span class="token keyword">if</span> feature<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">&gt;</span> <span class="token number">500</span> <span class="token keyword">else</span> <span class="token number">0</span> <span class="token keyword">for</span> feature <span class="token keyword">in</span> features<span class="token punctuation">]</span>
+
+    <span class="token keyword">return</span> labels
+
+<span class="token keyword">def</span> <span class="token function">train_decision_tree</span><span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># Split data into training and test sets</span>
+    X_train<span class="token punctuation">,</span> X_test<span class="token punctuation">,</span> y_train<span class="token punctuation">,</span> y_test <span class="token operator">=</span> train_test_split<span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">,</span> test_size<span class="token operator">=</span><span class="token number">0.2</span><span class="token punctuation">,</span> random_state<span class="token operator">=</span><span class="token number">42</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># Feature scaling: important since we are dealing with network traffic features which may have varying magnitudes</span>
+    sc <span class="token operator">=</span> StandardScaler<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    X_train <span class="token operator">=</span> sc<span class="token punctuation">.</span>fit_transform<span class="token punctuation">(</span>X_train<span class="token punctuation">)</span>
+    X_test <span class="token operator">=</span> sc<span class="token punctuation">.</span>transform<span class="token punctuation">(</span>X_test<span class="token punctuation">)</span>
+
+    <span class="token comment"># Create a Decision Tree classifier</span>
+    clf <span class="token operator">=</span> DecisionTreeClassifier<span class="token punctuation">(</span>random_state<span class="token operator">=</span><span class="token number">42</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># Train the classifier</span>
+    clf<span class="token punctuation">.</span>fit<span class="token punctuation">(</span>X_train<span class="token punctuation">,</span> y_train<span class="token punctuation">)</span>
+
+    <span class="token comment"># You can uncomment the following two lines to print the score of the model on the test data</span>
+    <span class="token comment"># score = clf.score(X_test, y_test)</span>
+    <span class="token comment"># print("Test score: ", score)</span>
+
+    <span class="token keyword">return</span> clf<span class="token punctuation">,</span> sc  <span class="token comment"># return the model and the scaler</span>
+
+<span class="token keyword">def</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    bin_file <span class="token operator">=</span> <span class="token string">'output.bin'</span>  <span class="token comment"># Specify your input .bin file</span>
+    model_file <span class="token operator">=</span> <span class="token string">'decision_tree_model.pkl'</span>  <span class="token comment"># Specify your output model file</span>
+    scaler_file <span class="token operator">=</span> <span class="token string">'scaler.pkl'</span>  <span class="token comment"># File to save the scaler</span>
+
+    <span class="token comment"># Read features from the .bin file</span>
+    features <span class="token operator">=</span> read_bin_file<span class="token punctuation">(</span>bin_file<span class="token punctuation">)</span>
+
+    <span class="token comment"># Create labels for the dataset</span>
+    labels <span class="token operator">=</span> create_labels<span class="token punctuation">(</span>features<span class="token punctuation">)</span>
+
+    <span class="token comment"># Train the Decision Tree classifier</span>
+    clf<span class="token punctuation">,</span> sc <span class="token operator">=</span> train_decision_tree<span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">)</span>
+
+    <span class="token comment"># Save the trained model and scaler for future use</span>
+    joblib<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>clf<span class="token punctuation">,</span> model_file<span class="token punctuation">)</span>
+    joblib<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>sc<span class="token punctuation">,</span> scaler_file<span class="token punctuation">)</span>
+
+    <span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Model data saved to '{model_file}' and scaler data saved to '{scaler_file}'"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
+    main<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+</code></pre>
+<p>Code for considering both the timestamp and the packet size:</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">import</span> struct
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>tree <span class="token keyword">import</span> DecisionTreeClassifier
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>model_selection <span class="token keyword">import</span> train_test_split
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>preprocessing <span class="token keyword">import</span> StandardScaler
+<span class="token keyword">import</span> joblib
+
+<span class="token keyword">def</span> <span class="token function">read_bin_file</span><span class="token punctuation">(</span>file_name<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># List to store the features (in this case, time and packet sizes)</span>
+    features <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+    <span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>file_name<span class="token punctuation">,</span> <span class="token string">'rb'</span><span class="token punctuation">)</span> <span class="token keyword">as</span> <span class="token builtin">file</span><span class="token punctuation">:</span>
+        base_time <span class="token operator">=</span> <span class="token boolean">None</span>  <span class="token comment"># we will subtract this from all timestamps to start from 0</span>
+
+        <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+            <span class="token comment"># Read the time and size data (total 8 bytes: two integers)</span>
+            packet_header <span class="token operator">=</span> <span class="token builtin">file</span><span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token number">8</span><span class="token punctuation">)</span>
+
+            <span class="token keyword">if</span> <span class="token operator">not</span> packet_header<span class="token punctuation">:</span>
+                <span class="token keyword">break</span>  <span class="token comment"># End of file</span>
+
+            <span class="token comment"># Unpack the data</span>
+            time<span class="token punctuation">,</span> size <span class="token operator">=</span> struct<span class="token punctuation">.</span>unpack<span class="token punctuation">(</span><span class="token string">'II'</span><span class="token punctuation">,</span> packet_header<span class="token punctuation">)</span>
+
+            <span class="token keyword">if</span> base_time <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
+                base_time <span class="token operator">=</span> time  <span class="token comment"># first timestamp we read is the base</span>
+
+            relative_time <span class="token operator">=</span> time <span class="token operator">-</span> base_time  <span class="token comment"># all timestamps are relative to the first</span>
+
+            <span class="token comment"># Assume the rest of the data is the packet content and can be skipped</span>
+            <span class="token builtin">file</span><span class="token punctuation">.</span>read<span class="token punctuation">(</span>size<span class="token punctuation">)</span>  <span class="token comment"># 'size' is from the packet_header info</span>
+
+            <span class="token comment"># We're using both relative time and packet size as features</span>
+            features<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">[</span>relative_time<span class="token punctuation">,</span> size<span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span> features
+
+<span class="token keyword">def</span> <span class="token function">create_labels</span><span class="token punctuation">(</span>features<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># In a real-world scenario, labels could be 'malicious', 'safe', etc., based on deep packet inspection or flow metadata.</span>
+    <span class="token comment"># Here, we create a dummy criterion: if size &gt; 500 then label "1" else "0".</span>
+    <span class="token comment"># Note: The labeling process depends highly on what aspect of the traffic you are analyzing. The example provided is simplistic.</span>
+    <span class="token comment"># Usually, you would have predefined labels based on thorough analysis.</span>
+    labels <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">1</span> <span class="token keyword">if</span> feature<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">&gt;</span> <span class="token number">500</span> <span class="token keyword">else</span> <span class="token number">0</span> <span class="token keyword">for</span> feature <span class="token keyword">in</span> features<span class="token punctuation">]</span>  <span class="token comment"># feature[1] is the 'size' in this context</span>
+
+    <span class="token keyword">return</span> labels
+
+<span class="token keyword">def</span> <span class="token function">train_decision_tree</span><span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># Split data into training and test sets</span>
+    X_train<span class="token punctuation">,</span> X_test<span class="token punctuation">,</span> y_train<span class="token punctuation">,</span> y_test <span class="token operator">=</span> train_test_split<span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">,</span> test_size<span class="token operator">=</span><span class="token number">0.2</span><span class="token punctuation">,</span> random_state<span class="token operator">=</span><span class="token number">42</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># Feature scaling: important since we are dealing with network traffic features which may have varying magnitudes</span>
+    sc <span class="token operator">=</span> StandardScaler<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    X_train <span class="token operator">=</span> sc<span class="token punctuation">.</span>fit_transform<span class="token punctuation">(</span>X_train<span class="token punctuation">)</span>
+    X_test <span class="token operator">=</span> sc<span class="token punctuation">.</span>transform<span class="token punctuation">(</span>X_test<span class="token punctuation">)</span>
+
+    <span class="token comment"># Create a Decision Tree classifier</span>
+    clf <span class="token operator">=</span> DecisionTreeClassifier<span class="token punctuation">(</span>random_state<span class="token operator">=</span><span class="token number">42</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># Train the classifier</span>
+    clf<span class="token punctuation">.</span>fit<span class="token punctuation">(</span>X_train<span class="token punctuation">,</span> y_train<span class="token punctuation">)</span>
+
+    <span class="token comment"># Optionally, you can evaluate the model by printing the score or other evaluation metrics</span>
+    <span class="token comment"># score = clf.score(X_test, y_test)</span>
+    <span class="token comment"># print("Test score: ", score)</span>
+
+    <span class="token keyword">return</span> clf<span class="token punctuation">,</span> sc  <span class="token comment"># return the model and the scaler</span>
+
+<span class="token keyword">def</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    bin_file <span class="token operator">=</span> <span class="token string">'output.bin'</span>  <span class="token comment"># Specify your input .bin file</span>
+    model_file <span class="token operator">=</span> <span class="token string">'decision_tree_model.pkl'</span>  <span class="token comment"># Specify your output model file</span>
+    scaler_file <span class="token operator">=</span> <span class="token string">'scaler.pkl'</span>  <span class="token comment"># File to save the scaler</span>
+
+    <span class="token comment"># Read features from the .bin file</span>
+    features <span class="token operator">=</span> read_bin_file<span class="token punctuation">(</span>bin_file<span class="token punctuation">)</span>
+
+    <span class="token comment"># Create labels for the dataset</span>
+    labels <span class="token operator">=</span> create_labels<span class="token punctuation">(</span>features<span class="token punctuation">)</span>
+
+    <span class="token comment"># Train the Decision Tree classifier</span>
+    clf<span class="token punctuation">,</span> sc <span class="token operator">=</span> train_decision_tree<span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">)</span>
+
+    <span class="token comment"># Save the trained model and scaler for future use</span>
+    joblib<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>clf<span class="token punctuation">,</span> model_file<span class="token punctuation">)</span>
+    joblib<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>sc<span class="token punctuation">,</span> scaler_file<span class="token punctuation">)</span>
+
+    <span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Model data saved to '{model_file}' and scaler data saved to '{scaler_file}'"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
+    main<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
 </code></pre>
 <p>Classifiers code for RF:</p>
-<pre class=" language-python"><code class="prism  language-python"><span class="token comment"># Import necessary libraries</span>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">import</span> struct
 <span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>ensemble <span class="token keyword">import</span> RandomForestClassifier
-<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>metrics <span class="token keyword">import</span> classification_report<span class="token punctuation">,</span> confusion_matrix
-<span class="token keyword">import</span> pandas <span class="token keyword">as</span> pd
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>model_selection <span class="token keyword">import</span> train_test_split
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>preprocessing <span class="token keyword">import</span> StandardScaler
+<span class="token keyword">import</span> joblib  <span class="token comment"># for saving model data</span>
 
-<span class="token comment"># Load data</span>
-data <span class="token operator">=</span> pd<span class="token punctuation">.</span>read_binary<span class="token punctuation">(</span><span class="token string">'traffic.bin'</span><span class="token punctuation">)</span>  
+<span class="token keyword">def</span> <span class="token function">read_bin_file</span><span class="token punctuation">(</span>file_name<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># List to store the features (in this case, only packet sizes)</span>
+    features <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
 
-<span class="token comment"># Prepare feature vectors and labels</span>
-X <span class="token operator">=</span> data<span class="token punctuation">.</span>drop<span class="token punctuation">(</span><span class="token string">'label'</span><span class="token punctuation">,</span> axis<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span>
-y <span class="token operator">=</span> data<span class="token punctuation">[</span><span class="token string">'label'</span><span class="token punctuation">]</span>
+    <span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>file_name<span class="token punctuation">,</span> <span class="token string">'rb'</span><span class="token punctuation">)</span> <span class="token keyword">as</span> <span class="token builtin">file</span><span class="token punctuation">:</span>
+        <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+            <span class="token comment"># Read the time and size data (total 8 bytes: two integers)</span>
+            packet_header <span class="token operator">=</span> <span class="token builtin">file</span><span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token number">8</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Initialize and train the random forest classifier</span>
-clf <span class="token operator">=</span> RandomForestClassifier<span class="token punctuation">(</span><span class="token punctuation">)</span>
-clf<span class="token punctuation">.</span>fit<span class="token punctuation">(</span>X<span class="token punctuation">,</span> y<span class="token punctuation">)</span>
+            <span class="token keyword">if</span> <span class="token operator">not</span> packet_header<span class="token punctuation">:</span>
+                <span class="token keyword">break</span>  <span class="token comment"># End of file</span>
 
-<span class="token comment"># Predictions and evaluation</span>
-y_pred <span class="token operator">=</span> clf<span class="token punctuation">.</span>predict<span class="token punctuation">(</span>X<span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>confusion_matrix<span class="token punctuation">(</span>y<span class="token punctuation">,</span> y_pred<span class="token punctuation">)</span><span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>classification_report<span class="token punctuation">(</span>y<span class="token punctuation">,</span> y_pred<span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token comment"># Unpack the data</span>
+            time<span class="token punctuation">,</span> size <span class="token operator">=</span> struct<span class="token punctuation">.</span>unpack<span class="token punctuation">(</span><span class="token string">'II'</span><span class="token punctuation">,</span> packet_header<span class="token punctuation">)</span>
+
+            <span class="token comment"># Assume the rest of the data is the packet content and can be skipped</span>
+            <span class="token comment"># or read depending on whether you need more features from the raw packet</span>
+            <span class="token comment"># Here we read it to move the file cursor to the next packet</span>
+            <span class="token builtin">file</span><span class="token punctuation">.</span>read<span class="token punctuation">(</span>size<span class="token punctuation">)</span>  <span class="token comment"># 'size' is from the packet_header info</span>
+
+            <span class="token comment"># For simplicity, we're using only packet size for features, but usually, more features would be needed.</span>
+            features<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">[</span>size<span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span> features
+
+<span class="token keyword">def</span> <span class="token function">create_labels</span><span class="token punctuation">(</span>features<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># Create fictional labels for our dataset. </span>
+    <span class="token comment"># In a real scenario, labels could be 'malicious', 'safe', etc., based on deep packet inspection or flow metadata.</span>
+    <span class="token comment"># Here, we create a dummy criterion: if size &gt; 500 then label "1" else "0".</span>
+    labels <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">1</span> <span class="token keyword">if</span> feature<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">&gt;</span> <span class="token number">500</span> <span class="token keyword">else</span> <span class="token number">0</span> <span class="token keyword">for</span> feature <span class="token keyword">in</span> features<span class="token punctuation">]</span>
+
+    <span class="token keyword">return</span> labels
+
+<span class="token keyword">def</span> <span class="token function">train_random_forest</span><span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># Split data into training and test sets</span>
+    X_train<span class="token punctuation">,</span> X_test<span class="token punctuation">,</span> y_train<span class="token punctuation">,</span> y_test <span class="token operator">=</span> train_test_split<span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">,</span> test_size<span class="token operator">=</span><span class="token number">0.2</span><span class="token punctuation">,</span> random_state<span class="token operator">=</span><span class="token number">42</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># Feature scaling: important since we are dealing with network traffic features which may have varying magnitudes</span>
+    sc <span class="token operator">=</span> StandardScaler<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    X_train <span class="token operator">=</span> sc<span class="token punctuation">.</span>fit_transform<span class="token punctuation">(</span>X_train<span class="token punctuation">)</span>
+    X_test <span class="token operator">=</span> sc<span class="token punctuation">.</span>transform<span class="token punctuation">(</span>X_test<span class="token punctuation">)</span>
+
+    <span class="token comment"># Create a Random Forest classifier</span>
+    clf <span class="token operator">=</span> RandomForestClassifier<span class="token punctuation">(</span>n_estimators<span class="token operator">=</span><span class="token number">100</span><span class="token punctuation">)</span>  <span class="token comment"># 100 trees in the forest</span>
+
+    <span class="token comment"># Train the classifier</span>
+    clf<span class="token punctuation">.</span>fit<span class="token punctuation">(</span>X_train<span class="token punctuation">,</span> y_train<span class="token punctuation">)</span>
+
+    <span class="token comment"># You can uncomment the following two lines to print the score of the model on the test data</span>
+    <span class="token comment"># score = clf.score(X_test, y_test)</span>
+    <span class="token comment"># print("Test score: ", score)</span>
+
+    <span class="token keyword">return</span> clf<span class="token punctuation">,</span> sc  <span class="token comment"># return the model and the scaler</span>
+
+<span class="token keyword">def</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    bin_file <span class="token operator">=</span> <span class="token string">'output.bin'</span>  <span class="token comment"># Specify your input .bin file</span>
+    model_file <span class="token operator">=</span> <span class="token string">'random_forest_model.pkl'</span>  <span class="token comment"># Specify your output model file</span>
+    scaler_file <span class="token operator">=</span> <span class="token string">'scaler.pkl'</span>  <span class="token comment"># File to save the scaler</span>
+
+    <span class="token comment"># Read features from the .bin file</span>
+    features <span class="token operator">=</span> read_bin_file<span class="token punctuation">(</span>bin_file<span class="token punctuation">)</span>
+
+    <span class="token comment"># Create labels for the dataset</span>
+    labels <span class="token operator">=</span> create_labels<span class="token punctuation">(</span>features<span class="token punctuation">)</span>
+
+    <span class="token comment"># Train the Random Forest classifier</span>
+    clf<span class="token punctuation">,</span> sc <span class="token operator">=</span> train_random_forest<span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">)</span>
+
+    <span class="token comment"># Save the trained model and scaler for future use</span>
+    joblib<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>clf<span class="token punctuation">,</span> model_file<span class="token punctuation">)</span>
+    joblib<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>sc<span class="token punctuation">,</span> scaler_file<span class="token punctuation">)</span>
+
+    <span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Model data saved to '{model_file}' and scaler data saved to '{scaler_file}'"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
+    main<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+</code></pre>
+<p>Code for considering both the timestamp and packet size:</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">import</span> struct
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>ensemble <span class="token keyword">import</span> RandomForestClassifier
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>model_selection <span class="token keyword">import</span> train_test_split
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>preprocessing <span class="token keyword">import</span> StandardScaler
+<span class="token keyword">import</span> joblib
+
+<span class="token keyword">def</span> <span class="token function">read_bin_file</span><span class="token punctuation">(</span>file_name<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    features <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+    <span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>file_name<span class="token punctuation">,</span> <span class="token string">'rb'</span><span class="token punctuation">)</span> <span class="token keyword">as</span> <span class="token builtin">file</span><span class="token punctuation">:</span>
+        base_time <span class="token operator">=</span> <span class="token boolean">None</span>
+
+        <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+            packet_header <span class="token operator">=</span> <span class="token builtin">file</span><span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token number">8</span><span class="token punctuation">)</span>
+
+            <span class="token keyword">if</span> <span class="token operator">not</span> packet_header<span class="token punctuation">:</span>
+                <span class="token keyword">break</span>
+
+            time<span class="token punctuation">,</span> size <span class="token operator">=</span> struct<span class="token punctuation">.</span>unpack<span class="token punctuation">(</span><span class="token string">'II'</span><span class="token punctuation">,</span> packet_header<span class="token punctuation">)</span>
+
+            <span class="token keyword">if</span> base_time <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
+                base_time <span class="token operator">=</span> time
+
+            relative_time <span class="token operator">=</span> time <span class="token operator">-</span> base_time
+
+            <span class="token builtin">file</span><span class="token punctuation">.</span>read<span class="token punctuation">(</span>size<span class="token punctuation">)</span>
+
+            features<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">[</span>relative_time<span class="token punctuation">,</span> size<span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span> features
+
+<span class="token keyword">def</span> <span class="token function">create_labels</span><span class="token punctuation">(</span>features<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    labels <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">1</span> <span class="token keyword">if</span> feature<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">&gt;</span> <span class="token number">500</span> <span class="token keyword">else</span> <span class="token number">0</span> <span class="token keyword">for</span> feature <span class="token keyword">in</span> features<span class="token punctuation">]</span>
+    <span class="token keyword">return</span> labels
+
+<span class="token keyword">def</span> <span class="token function">train_random_forest</span><span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    X_train<span class="token punctuation">,</span> X_test<span class="token punctuation">,</span> y_train<span class="token punctuation">,</span> y_test <span class="token operator">=</span> train_test_split<span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">,</span> test_size<span class="token operator">=</span><span class="token number">0.2</span><span class="token punctuation">,</span> random_state<span class="token operator">=</span><span class="token number">42</span><span class="token punctuation">)</span>
+
+    sc <span class="token operator">=</span> StandardScaler<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    X_train <span class="token operator">=</span> sc<span class="token punctuation">.</span>fit_transform<span class="token punctuation">(</span>X_train<span class="token punctuation">)</span>
+    X_test <span class="token operator">=</span> sc<span class="token punctuation">.</span>transform<span class="token punctuation">(</span>X_test<span class="token punctuation">)</span>
+
+    <span class="token comment"># Create a Random Forest classifier</span>
+    clf <span class="token operator">=</span> RandomForestClassifier<span class="token punctuation">(</span>n_estimators<span class="token operator">=</span><span class="token number">100</span><span class="token punctuation">,</span> random_state<span class="token operator">=</span><span class="token number">42</span><span class="token punctuation">)</span>
+
+    clf<span class="token punctuation">.</span>fit<span class="token punctuation">(</span>X_train<span class="token punctuation">,</span> y_train<span class="token punctuation">)</span>
+
+    <span class="token comment"># Optionally, you can evaluate the model by printing the score or other evaluation metrics</span>
+    <span class="token comment"># score = clf.score(X_test, y_test)</span>
+    <span class="token comment"># print("Test score: ", score)</span>
+
+    <span class="token keyword">return</span> clf<span class="token punctuation">,</span> sc
+
+<span class="token keyword">def</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    bin_file <span class="token operator">=</span> <span class="token string">'output.bin'</span>
+    model_file <span class="token operator">=</span> <span class="token string">'random_forest_model.pkl'</span>
+    scaler_file <span class="token operator">=</span> <span class="token string">'scaler.pkl'</span>
+
+    features <span class="token operator">=</span> read_bin_file<span class="token punctuation">(</span>bin_file<span class="token punctuation">)</span>
+    labels <span class="token operator">=</span> create_labels<span class="token punctuation">(</span>features<span class="token punctuation">)</span>
+
+    clf<span class="token punctuation">,</span> sc <span class="token operator">=</span> train_random_forest<span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">)</span>
+
+    joblib<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>clf<span class="token punctuation">,</span> model_file<span class="token punctuation">)</span>
+    joblib<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>sc<span class="token punctuation">,</span> scaler_file<span class="token punctuation">)</span>
+
+    <span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Model data saved to '{model_file}' and scaler data saved to '{scaler_file}'"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
+    main<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
 </code></pre>
 <p>Classifiers code for SVM:</p>
-<pre class=" language-python"><code class="prism  language-python"><span class="token comment"># Import necessary libraries</span>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">import</span> struct
 <span class="token keyword">from</span> sklearn <span class="token keyword">import</span> svm
-<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>metrics <span class="token keyword">import</span> classification_report<span class="token punctuation">,</span> confusion_matrix
-<span class="token keyword">import</span> pandas <span class="token keyword">as</span> pd
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>model_selection <span class="token keyword">import</span> train_test_split
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>preprocessing <span class="token keyword">import</span> StandardScaler
+<span class="token keyword">import</span> joblib  <span class="token comment"># for saving model data</span>
 
-<span class="token comment"># Load data</span>
-data <span class="token operator">=</span> pd<span class="token punctuation">.</span>read_binary<span class="token punctuation">(</span><span class="token string">'traffic.bin'</span><span class="token punctuation">)</span> 
+<span class="token keyword">def</span> <span class="token function">read_bin_file</span><span class="token punctuation">(</span>file_name<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># List to store the features (in this case, only packet sizes)</span>
+    features <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
 
-<span class="token comment"># Prepare feature vectors and labels</span>
-X <span class="token operator">=</span> data<span class="token punctuation">.</span>drop<span class="token punctuation">(</span><span class="token string">'label'</span><span class="token punctuation">,</span> axis<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span>
-y <span class="token operator">=</span> data<span class="token punctuation">[</span><span class="token string">'label'</span><span class="token punctuation">]</span>
+    <span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>file_name<span class="token punctuation">,</span> <span class="token string">'rb'</span><span class="token punctuation">)</span> <span class="token keyword">as</span> <span class="token builtin">file</span><span class="token punctuation">:</span>
+        <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+            <span class="token comment"># Read the time and size data (total 8 bytes: two integers)</span>
+            packet_header <span class="token operator">=</span> <span class="token builtin">file</span><span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token number">8</span><span class="token punctuation">)</span>
+            
+            <span class="token keyword">if</span> <span class="token operator">not</span> packet_header<span class="token punctuation">:</span>
+                <span class="token keyword">break</span>  <span class="token comment"># End of file</span>
 
-<span class="token comment"># Initialize and train the SVM classifier</span>
-clf <span class="token operator">=</span> svm<span class="token punctuation">.</span>SVC<span class="token punctuation">(</span><span class="token punctuation">)</span>
-clf<span class="token punctuation">.</span>fit<span class="token punctuation">(</span>X<span class="token punctuation">,</span> y<span class="token punctuation">)</span>
+            <span class="token comment"># Unpack the data</span>
+            time<span class="token punctuation">,</span> size <span class="token operator">=</span> struct<span class="token punctuation">.</span>unpack<span class="token punctuation">(</span><span class="token string">'II'</span><span class="token punctuation">,</span> packet_header<span class="token punctuation">)</span>
 
-<span class="token comment"># Predictions and evaluation</span>
-y_pred <span class="token operator">=</span> clf<span class="token punctuation">.</span>predict<span class="token punctuation">(</span>X<span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>confusion_matrix<span class="token punctuation">(</span>y<span class="token punctuation">,</span> y_pred<span class="token punctuation">)</span><span class="token punctuation">)</span>
-<span class="token keyword">print</span><span class="token punctuation">(</span>classification_report<span class="token punctuation">(</span>y<span class="token punctuation">,</span> y_pred<span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token comment"># Assume the rest of the data is the packet content and can be skipped</span>
+            <span class="token comment"># or read depending on whether you need more features from the raw packet</span>
+            <span class="token comment"># Here we read it to move the file cursor to the next packet</span>
+            <span class="token builtin">file</span><span class="token punctuation">.</span>read<span class="token punctuation">(</span>size<span class="token punctuation">)</span>  <span class="token comment"># 'size' is from the packet_header info</span>
+
+            <span class="token comment"># For simplicity in this experiment, we're using only packet size for features, but more features would be needed in the future.</span>
+            features<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">[</span>size<span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span> features
+
+<span class="token keyword">def</span> <span class="token function">create_labels</span><span class="token punctuation">(</span>features<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># Create fictional labels for our dataset. </span>
+    <span class="token comment"># In a real scenario, labels could be 'malicious', 'safe', etc., based on deep packet inspection or flow metadata.</span>
+    <span class="token comment"># Here, we create a dummy criterion: if size &gt; 500 then label "1" else "0".</span>
+    labels <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">1</span> <span class="token keyword">if</span> feature<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">&gt;</span> <span class="token number">500</span> <span class="token keyword">else</span> <span class="token number">0</span> <span class="token keyword">for</span> feature <span class="token keyword">in</span> features<span class="token punctuation">]</span>
+
+    <span class="token keyword">return</span> labels
+
+<span class="token keyword">def</span> <span class="token function">train_svm</span><span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># Split data into training and test sets</span>
+    X_train<span class="token punctuation">,</span> X_test<span class="token punctuation">,</span> y_train<span class="token punctuation">,</span> y_test <span class="token operator">=</span> train_test_split<span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">,</span> test_size<span class="token operator">=</span><span class="token number">0.2</span><span class="token punctuation">,</span> random_state<span class="token operator">=</span><span class="token number">42</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># Feature scaling: important since we are dealing with network traffic features which may have varying magnitudes</span>
+    sc <span class="token operator">=</span> StandardScaler<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    X_train <span class="token operator">=</span> sc<span class="token punctuation">.</span>fit_transform<span class="token punctuation">(</span>X_train<span class="token punctuation">)</span>
+    X_test <span class="token operator">=</span> sc<span class="token punctuation">.</span>transform<span class="token punctuation">(</span>X_test<span class="token punctuation">)</span>
+
+    <span class="token comment"># Create a SVM classifier</span>
+    clf <span class="token operator">=</span> svm<span class="token punctuation">.</span>SVC<span class="token punctuation">(</span>kernel<span class="token operator">=</span><span class="token string">'linear'</span><span class="token punctuation">)</span>  <span class="token comment"># linear kernel is chosen for simplicity</span>
+
+    <span class="token comment"># Train the classifier</span>
+    clf<span class="token punctuation">.</span>fit<span class="token punctuation">(</span>X_train<span class="token punctuation">,</span> y_train<span class="token punctuation">)</span>
+
+    <span class="token comment"># You can uncomment the following two lines to print the score of the model on the test data</span>
+    <span class="token comment"># score = clf.score(X_test, y_test)</span>
+    <span class="token comment"># print("Test score: ", score)</span>
+
+    <span class="token keyword">return</span> clf<span class="token punctuation">,</span> sc  <span class="token comment"># return the model and the scaler</span>
+
+<span class="token keyword">def</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    bin_file <span class="token operator">=</span> <span class="token string">'output.bin'</span>  <span class="token comment"># Specify your input .bin file</span>
+    model_file <span class="token operator">=</span> <span class="token string">'svm_model.pkl'</span>  <span class="token comment"># Specify your output model file</span>
+    scaler_file <span class="token operator">=</span> <span class="token string">'scaler.pkl'</span>  <span class="token comment"># File to save the scaler</span>
+
+    <span class="token comment"># Read features from the .bin file</span>
+    features <span class="token operator">=</span> read_bin_file<span class="token punctuation">(</span>bin_file<span class="token punctuation">)</span>
+
+    <span class="token comment"># Create labels for the dataset</span>
+    labels <span class="token operator">=</span> create_labels<span class="token punctuation">(</span>features<span class="token punctuation">)</span>
+
+    <span class="token comment"># Train the SVM classifier</span>
+    clf<span class="token punctuation">,</span> sc <span class="token operator">=</span> train_svm<span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">)</span>
+
+    <span class="token comment"># Save the trained model and scaler for future use</span>
+    joblib<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>clf<span class="token punctuation">,</span> model_file<span class="token punctuation">)</span>
+    joblib<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>sc<span class="token punctuation">,</span> scaler_file<span class="token punctuation">)</span>
+
+    <span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Model data saved to '{model_file}' and scaler data saved to '{scaler_file}'"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
+    main<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+</code></pre>
+<p>Achieving four classes classification using ‘ovo’ method of SVM</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">import</span> pandas <span class="token keyword">as</span> pd
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>model_selection <span class="token keyword">import</span> train_test_split
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>preprocessing <span class="token keyword">import</span> StandardScaler
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>svm <span class="token keyword">import</span> SVC
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>metrics <span class="token keyword">import</span> classification_report<span class="token punctuation">,</span> accuracy_score
+<span class="token keyword">import</span> joblib
+
+<span class="token comment"># Step 1: Load your data</span>
+<span class="token comment"># Replace 'your_data.bin' with your actual file name. This file should be in CSV-like format.</span>
+file_path <span class="token operator">=</span> <span class="token string">'your_data.bin'</span>
+data <span class="token operator">=</span> pd<span class="token punctuation">.</span>read_csv<span class="token punctuation">(</span>file_path<span class="token punctuation">,</span> sep<span class="token operator">=</span><span class="token string">','</span><span class="token punctuation">)</span>
+
+<span class="token comment"># The data should include a 'label' column ('A', 'B', 'C', or 'D').</span>
+<span class="token comment"># And 'features' which are your traffic volume data.</span>
+
+<span class="token comment"># Step 2: Preprocess the data</span>
+X <span class="token operator">=</span> data<span class="token punctuation">.</span>drop<span class="token punctuation">(</span><span class="token string">'label'</span><span class="token punctuation">,</span> axis<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span>  <span class="token comment"># features</span>
+y <span class="token operator">=</span> data<span class="token punctuation">[</span><span class="token string">'label'</span><span class="token punctuation">]</span>  <span class="token comment"># target</span>
+
+<span class="token comment"># Splitting data into training and testing sets</span>
+X_train<span class="token punctuation">,</span> X_test<span class="token punctuation">,</span> y_train<span class="token punctuation">,</span> y_test <span class="token operator">=</span> train_test_split<span class="token punctuation">(</span>X<span class="token punctuation">,</span> y<span class="token punctuation">,</span> test_size<span class="token operator">=</span><span class="token number">0.2</span><span class="token punctuation">,</span> random_state<span class="token operator">=</span><span class="token number">42</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Feature Scaling: Standardizing the data.</span>
+sc <span class="token operator">=</span> StandardScaler<span class="token punctuation">(</span><span class="token punctuation">)</span>
+X_train <span class="token operator">=</span> sc<span class="token punctuation">.</span>fit_transform<span class="token punctuation">(</span>X_train<span class="token punctuation">)</span>
+X_test <span class="token operator">=</span> sc<span class="token punctuation">.</span>transform<span class="token punctuation">(</span>X_test<span class="token punctuation">)</span>
+
+<span class="token comment"># Step 3: Train the SVM classifier</span>
+<span class="token comment"># SVC with 'rbf' kernel for multi-class classification; you can experiment with 'linear', 'poly', etc.</span>
+clf <span class="token operator">=</span> SVC<span class="token punctuation">(</span>kernel<span class="token operator">=</span><span class="token string">'rbf'</span><span class="token punctuation">,</span> decision_function_shape<span class="token operator">=</span><span class="token string">'ovo'</span><span class="token punctuation">)</span>  <span class="token comment"># one-vs-one decision function</span>
+clf<span class="token punctuation">.</span>fit<span class="token punctuation">(</span>X_train<span class="token punctuation">,</span> y_train<span class="token punctuation">)</span>
+
+<span class="token comment"># Step 4: Evaluate the model</span>
+y_pred <span class="token operator">=</span> clf<span class="token punctuation">.</span>predict<span class="token punctuation">(</span>X_test<span class="token punctuation">)</span>
+
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"Classification Report:"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>classification_report<span class="token punctuation">(</span>y_test<span class="token punctuation">,</span> y_pred<span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"Accuracy Score:"</span><span class="token punctuation">,</span> accuracy_score<span class="token punctuation">(</span>y_test<span class="token punctuation">,</span> y_pred<span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Step 5: Save the model</span>
+<span class="token comment"># Save the model as a binary file</span>
+model_filename <span class="token operator">=</span> <span class="token string">'svm_traffic_multi_classifier.sav'</span>
+joblib<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>clf<span class="token punctuation">,</span> model_filename<span class="token punctuation">)</span>
+
+<span class="token comment"># Save the scaler as a binary file</span>
+scaler_filename <span class="token operator">=</span> <span class="token string">'scaler.sav'</span>
+joblib<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>sc<span class="token punctuation">,</span> scaler_filename<span class="token punctuation">)</span>
+
+<span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Model saved as {model_filename}"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Scaler saved as {scaler_filename}"</span><span class="token punctuation">)</span>
+
+</code></pre>
+<p>For both timestamp and packet size:</p>
+<pre class=" language-python"><code class="prism  language-python"><span class="token keyword">import</span> struct
+<span class="token keyword">from</span> sklearn <span class="token keyword">import</span> svm
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>model_selection <span class="token keyword">import</span> train_test_split
+<span class="token keyword">from</span> sklearn<span class="token punctuation">.</span>preprocessing <span class="token keyword">import</span> StandardScaler
+<span class="token keyword">import</span> joblib
+
+<span class="token keyword">def</span> <span class="token function">read_bin_file</span><span class="token punctuation">(</span>file_name<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    features <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+    <span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>file_name<span class="token punctuation">,</span> <span class="token string">'rb'</span><span class="token punctuation">)</span> <span class="token keyword">as</span> <span class="token builtin">file</span><span class="token punctuation">:</span>
+        base_time <span class="token operator">=</span> <span class="token boolean">None</span>
+
+        <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+            packet_header <span class="token operator">=</span> <span class="token builtin">file</span><span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token number">8</span><span class="token punctuation">)</span>
+
+            <span class="token keyword">if</span> <span class="token operator">not</span> packet_header<span class="token punctuation">:</span>
+                <span class="token keyword">break</span>  <span class="token comment"># End of file</span>
+
+            time<span class="token punctuation">,</span> size <span class="token operator">=</span> struct<span class="token punctuation">.</span>unpack<span class="token punctuation">(</span><span class="token string">'II'</span><span class="token punctuation">,</span> packet_header<span class="token punctuation">)</span>
+
+            <span class="token keyword">if</span> base_time <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
+                base_time <span class="token operator">=</span> time  <span class="token comment"># first timestamp we read is the base</span>
+
+            relative_time <span class="token operator">=</span> time <span class="token operator">-</span> base_time  <span class="token comment"># all timestamps are relative to the first</span>
+
+            <span class="token builtin">file</span><span class="token punctuation">.</span>read<span class="token punctuation">(</span>size<span class="token punctuation">)</span>  <span class="token comment"># 'size' is from the packet_header info</span>
+
+            features<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">[</span>relative_time<span class="token punctuation">,</span> size<span class="token punctuation">]</span><span class="token punctuation">)</span>  <span class="token comment"># using both relative time and packet size as features</span>
+
+    <span class="token keyword">return</span> features
+
+<span class="token keyword">def</span> <span class="token function">create_labels</span><span class="token punctuation">(</span>features<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># Create labels based on some criterion; here, it's based on packet size</span>
+    labels <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">1</span> <span class="token keyword">if</span> feature<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">&gt;</span> <span class="token number">500</span> <span class="token keyword">else</span> <span class="token number">0</span> <span class="token keyword">for</span> feature <span class="token keyword">in</span> features<span class="token punctuation">]</span>
+    <span class="token keyword">return</span> labels
+
+<span class="token keyword">def</span> <span class="token function">train_svm</span><span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    X_train<span class="token punctuation">,</span> X_test<span class="token punctuation">,</span> y_train<span class="token punctuation">,</span> y_test <span class="token operator">=</span> train_test_split<span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">,</span> test_size<span class="token operator">=</span><span class="token number">0.2</span><span class="token punctuation">,</span> random_state<span class="token operator">=</span><span class="token number">42</span><span class="token punctuation">)</span>
+
+    sc <span class="token operator">=</span> StandardScaler<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    X_train <span class="token operator">=</span> sc<span class="token punctuation">.</span>fit_transform<span class="token punctuation">(</span>X_train<span class="token punctuation">)</span>
+    X_test <span class="token operator">=</span> sc<span class="token punctuation">.</span>transform<span class="token punctuation">(</span>X_test<span class="token punctuation">)</span>
+
+    <span class="token comment"># Create a SVM classifier</span>
+    clf <span class="token operator">=</span> svm<span class="token punctuation">.</span>SVC<span class="token punctuation">(</span>kernel<span class="token operator">=</span><span class="token string">'linear'</span><span class="token punctuation">)</span>  <span class="token comment"># Linear kernel is used here; you can also try 'rbf', 'poly', etc.</span>
+
+    clf<span class="token punctuation">.</span>fit<span class="token punctuation">(</span>X_train<span class="token punctuation">,</span> y_train<span class="token punctuation">)</span>
+
+    <span class="token comment"># Optionally, you can evaluate the model by printing the score or other evaluation metrics</span>
+    <span class="token comment"># score = clf.score(X_test, y_test)</span>
+    <span class="token comment"># print("Test score: ", score)</span>
+
+    <span class="token keyword">return</span> clf<span class="token punctuation">,</span> sc
+
+<span class="token keyword">def</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    bin_file <span class="token operator">=</span> <span class="token string">'output.bin'</span>  <span class="token comment"># Specify your input .bin file</span>
+    model_file <span class="token operator">=</span> <span class="token string">'svm_model.pkl'</span>  <span class="token comment"># Specify your output model file</span>
+    scaler_file <span class="token operator">=</span> <span class="token string">'scaler.pkl'</span>  <span class="token comment"># File to save the scaler</span>
+
+    features <span class="token operator">=</span> read_bin_file<span class="token punctuation">(</span>bin_file<span class="token punctuation">)</span>
+    labels <span class="token operator">=</span> create_labels<span class="token punctuation">(</span>features<span class="token punctuation">)</span>
+
+    clf<span class="token punctuation">,</span> sc <span class="token operator">=</span> train_svm<span class="token punctuation">(</span>features<span class="token punctuation">,</span> labels<span class="token punctuation">)</span>
+
+    joblib<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>clf<span class="token punctuation">,</span> model_file<span class="token punctuation">)</span>
+    joblib<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>sc<span class="token punctuation">,</span> scaler_file<span class="token punctuation">)</span>
+
+    <span class="token keyword">print</span><span class="token punctuation">(</span>f<span class="token string">"Model data saved to '{model_file}' and scaler data saved to '{scaler_file}'"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
+    main<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
 </code></pre>
 <p>Output:</p>
 <pre class=" language-python"><code class="prism  language-python"><span class="token comment"># Example output for three classifiers from three programs</span>
