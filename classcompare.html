@@ -23,8 +23,14 @@ Experiment setup:</p>
 <li>Airmon-ng 1.6</li>
 </ul>
 <hr>
-<h4 id="data-collection">Data collection</h4>
-<p>We have a dataset containing feature vectors coming from 11 different cameras that we examine for training. We perform different durations of motion from 2 to 16 seconds with increments of 2. For every motion length, we collect 70 corresponding traffic flows for each camera state of every camera, enabling us to obtain high inference accuracy. Thus, the built dataset has 11 × 8 × 70 × 4 = 24, 640 feature vectors in total. We apply the common 80/20 split for training and test sets.</p>
+<h4 id="data-collection-environment">Data collection environment</h4>
+<p>We have a dataset containing feature vectors coming from 11 different cameras that we examine for training. We perform different durations of motion from 2 to 16 seconds with increments of 2. For every motion length, we collect 70 corresponding traffic flows for each camera state of every camera, enabling us to obtain high inference accuracy.</p>
+<p><strong>Camera status:</strong><br>
+A-Normal mode but not paid<br>
+B-Live View Mode but not paid<br>
+C-Normal mode paid<br>
+D-Live view Mode paid</p>
+<p>It’s suggested that if you want to train the classifier by yourself, please deploy cameras to simulate all four modes and collect corresponding camera traffic. It’s better to collect the camera traffic under the same environment to avoid any interference. We prefer that use two cameras for each of the camera model (one paid and another one not paid).</p>
 <h4 id="calculation-method">Calculation method:</h4>
 <p>For Success Rate:<br>
 <code>Success Rate = Successful cases / Total cases</code><br>
