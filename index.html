@@ -151,6 +151,57 @@
 <li>Android Studio 2023 with NDK support libraries (MacOS preferred for cross compilation)</li>
 <li>Microsoft Excel 2023</li>
 </ul>
+<h4 id="beginner-101-for-traffic-scanning---collecting-camera-traffic-data-with-airodump">Beginner 101 for traffic scanning - Collecting Camera Traffic Data with airodump</h4>
+<p>In order to know why camera’s traffic will not be the same under different working mode. We have a small quick playground for you to test the wireless sniffing. This quick guide explains how to collect wireless traffic data from security cameras in 4 different modes:</p>
+<ul>
+<li>Paid - Normal</li>
+<li>Paid - Live View</li>
+<li>Unpaid - Normal</li>
+<li>Unpaid - Live View</li>
+</ul>
+<p>Using the airodump tool from the aircrack-ng suite. You need a WiFi adapter that supports monitor mode.</p>
+<h2 id="requirements">Requirements</h2>
+<ul>
+<li>Wireless security camera(s)</li>
+<li>WiFi adapter in monitor mode</li>
+<li>airodump-ng</li>
+</ul>
+<h2 id="steps">Steps</h2>
+<ol>
+<li>
+<p>Put WiFi adapter into monitor mode</p>
+<pre class=" language-bash"><code class="prism  language-bash">airmon-ng start wlan0
+</code></pre>
+</li>
+<li>
+<p>Find channel of target camera from the list, match the OUI</p>
+<pre class=" language-bash"><code class="prism  language-bash">airodump-ng wlan0mon
+</code></pre>
+<p>Note the channel of the target camera’s BSSID.</p>
+</li>
+<li>
+<p>Capture on channel</p>
+<pre class=" language-bash"><code class="prism  language-bash">airodump-ng -c 6 --bssid 00:11:22:33:44:55 -w camera wlan0mon
+</code></pre>
+<p>Replace 6 with camera channel and 00:11:22:33:44:55 with camera BSSID.</p>
+</li>
+<li>
+<p>Generate motion to stimulate camera</p>
+<ul>
+<li>Paid - Normal: Let camera record normally</li>
+<li>Paid - Live View: Open live view on camera</li>
+<li>Unpaid - Normal: Generate motion, no live view</li>
+<li>Unpaid - Live View: Generate motion, open live view</li>
+</ul>
+</li>
+<li>
+<p>Repeat step 4 in each mode</p>
+</li>
+<li>
+<p>Press Ctrl+C to stop capture</p>
+</li>
+</ol>
+<p>Now you can analyze these capture files to extract traffic patterns for each camera mode and you should be ready to get start with traffic capture.</p>
 <p>The following <a href="http://weakcamid.info/app.html">Android APP</a> is used to do the experiment and getting the localization result.</p>
 <p>You can send us any email if you meet problems when running our code or getting any result, Yan He (<a href="mailto:heyan@ou.edu">heyan@ou.edu</a>) or Fang Song (<a href="mailto:songf@ou.edu">songf@ou.edu</a>).</p>
 <h2 id="examples-when-running-our-code">Examples when running our code</h2>
