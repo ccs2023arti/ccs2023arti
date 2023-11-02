@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dataprocessing</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h2 id="sample-data-processing-guide">Sample Data Processing Guide</h2>
+<p><strong>Camera status:</strong><br>
+A-Normal mode but not paid<br>
+B-Live View Mode but not paid<br>
+C-Normal mode paid<br>
+D-Live view Mode paid</p>
+<p>It’s suggested that if you want to train the classifier by yourself, please deploy cameras to simulate all four modes and collect corresponding camera traffic. Click <a href="https://weakcamid.info/classcompare.html">Here</a> to see how you can collect the wireless traffic by yourself. It’s better to collect the camera traffic under the stable environment to avoid any interference. We prefer that use two cameras for each of the camera model (one paid and another one not paid). <strong>We also provide you a data processing guide with a sample raw camera traffic dataset, labeled with its corresponding modes (From A to D). The raw traffic data from off-the-shelf security cameras, as listed in Table 1 in our paper.</strong></p>
+<p><strong>Raw data processing steps:</strong></p>
+<ol>
+<li>
+<p>First you can download the raw traffic data here<br>
+<a href="https://weakcamid.info/rawdata.zip">Download Raw Data Here</a></p>
+</li>
+<li>
+<p>You should see two files “dataset.csv” and “svm_classifier.py”</p>
+</li>
+<li>
+<p>“svm_classifier.py” is the file needed to train the classifier, and dataset.csv is the raw traffic data from off-the-shelf security cameras, as listed in Table 1 in our paper</p>
+</li>
+<li>
+<p>For the default dataset spilt, we use <code>test_size=0.2</code> to control the amount of training and testing data</p>
+</li>
+<li>
+<p><code>Classification Report</code> provided in  “svm_classifier.py” will report the accuracy on detecting the camera’s different modes, including <code>F1 Score</code>, <code>Precision</code> and <code>Recall</code></p>
+</li>
+</ol>
+<p>.</p>
+</div>
+</body>
+
+</html>
